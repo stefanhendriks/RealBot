@@ -34,7 +34,7 @@
 #define MAX_BLOCKS	100
 #define BLOCK_DEATHS (MAX_BLOCKS-1)
 
-static const int MAX_SENTENCE_LENGTH = 128;
+static constexpr int MAX_SENTENCE_LENGTH = 128;
 // Reply block
 typedef struct {
    // words, hinting that in this block a logical sentence will be to reply with

@@ -96,14 +96,14 @@ bool FUNC_BotHoldsZoomWeapon(cBot * pBot);
 int FUNC_InFieldOfView(edict_t * pEntity, const Vector& dest);
 
 bool VectorIsVisibleWithEdict(edict_t * pEdict, const Vector& dest,
-                              char *checkname);
+                              const char *checkname);
 
 bool BOT_DecideTakeCover(cBot * pBot);
 
 // bot_buycode.cpp
 void BotConsole(cBot * pBot);
 
-void rblog(char *txt);
+void rblog(const char* txt);
 
 // bot.cpp
 
@@ -114,10 +114,10 @@ int UTIL_GetGrenadeType(edict_t * pEntity);
 
 bool UTIL_IsVip(edict_t * pEntity);
 
-char *UTIL_GiveWeaponName(int id);
+char* UTIL_GiveWeaponName(int id);
 
 void UTIL_SpeechSynth(edict_t * pEdict, char *szMessage);
-void UTIL_BotRadioMessage(cBot * pBot, int radio, char *arg1, char *arg2);
+void UTIL_BotRadioMessage(cBot * pBot, int radio, const char *arg1, const char *arg2);
 void UTIL_BotPressKey(cBot * pBot, int type);
 // bot_navigate.cpp
 

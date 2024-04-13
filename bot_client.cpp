@@ -187,7 +187,7 @@ void BotClient_Valve_CurrentWeapon(void *p, int bot_index) {
 
         iClip = *static_cast<int*>(p);       // ammo currently in the clip for this weapon
 
-        if (iId < static_cast<int>(sizeof(weapon_defs) / sizeof(weapon_defs[0]))) {
+        if (iId < static_cast<int>(std::size(weapon_defs))) {
             bots[bot_index].bot_weapons |= 1 << iId;     // set this weapon bit
 
             if (iState == 1) {
@@ -496,7 +496,7 @@ void BotClient_Valve_Damage(void *p, int bot_index) {
                         pBot->rprint("BotClient_Valve_Damage", "Damage taken, by player, change goal to damage origin.");
 
                         char msg[255];
-                        std::sprintf(msg, "damage_origin (x,y,z) => (%f,%f,%f) | damageInflictor->v.origin (x,y,z) => (%f,%f,%f)",
+                        snprintf(msg, sizeof(msg), "damage_origin (x,y,z) => (%f,%f,%f) | damageInflictor->v.origin (x,y,z) => (%f,%f,%f)",
                                 damage_origin.x,
                                 damage_origin.y,
                                 damage_origin.z,
@@ -512,7 +512,7 @@ void BotClient_Valve_Damage(void *p, int bot_index) {
                         pBot->forgetPath();
                     } else {
                         char msg[255];
-                        std::sprintf(msg, "I have a damage inflictor! -> %s", STRING(damageInflictor->v.classname));
+                        snprintf(msg, sizeof(msg), "I have a damage inflictor! -> %s", STRING(damageInflictor->v.classname));
                         pBot->rprint("BotClient_Valve_Damage", msg);
                     }
                 } else {

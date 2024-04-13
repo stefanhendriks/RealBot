@@ -283,8 +283,8 @@ void GameDLLInit() {
     fpRblog = std::fopen("reallog.txt", "at");
 
     rblog("Initializing clients..");
-    for (int i = 0; i < 32; i++)
-        clients[i] = nullptr;
+    for (edict_t*& client : clients)
+	    client = nullptr;
     rblog("OK\n");
 
     // initialize the bots array of structures...
@@ -446,7 +446,7 @@ ClientConnect(edict_t *pEntity, const char *pszName,
                     {
                         char cmd[80];
 
-                        std::sprintf(cmd, "kick \"%s\"\n", bots[i].name);
+                        snprintf(cmd, sizeof(cmd), "kick \"%s\"\n", bots[i].name);
                         SERVER_COMMAND(cmd);  // kick the bot using (kick "name")
 
                         break;
@@ -574,7 +574,7 @@ void StartFrame() {
             {
 	            if (bots[i].iTeam == kicking_team) {
 		            char cmd[80];
-		            std::sprintf(cmd, "kick \"%s\"\n", bots[i].name);
+		            snprintf(cmd, sizeof(cmd), "kick \"%s\"\n", bots[i].name);
                     SERVER_COMMAND(cmd);  // kick the bot using (kick "name")
                     break;
                 }
@@ -667,7 +667,7 @@ void StartFrame() {
         if (welcome_time > 0.0f && welcome_time < gpGlobals->time) {
             // let's send a welcome message to this client...
             char total_welcome[256];
-            std::sprintf(total_welcome, "RealBot - Version %s\nBy Stefan Hendriks\n", rb_version_nr);
+            snprintf(total_welcome, sizeof(total_welcome), "RealBot - Version %s\nBy Stefan Hendriks\n", rb_version_nr);
             int r, g, b;
             /*
                r = RANDOM_LONG(30, 255);
@@ -939,9 +939,9 @@ void StartFrame() {
             char c_team[2];
             char c_class[3];
 
-            std::sprintf(c_skill, "%d", bots[index].bot_skill);
-            std::sprintf(c_team, "%d", bots[index].iTeam);
-            std::sprintf(c_class, "%d", bots[index].bot_class);
+			snprintf(c_skill, sizeof(c_skill), "%d", bots[index].bot_skill);
+            snprintf(c_team, sizeof(c_team), "%d", bots[index].iTeam);
+            snprintf(c_class, sizeof(c_class), "%d", bots[index].bot_class);
 
             Game.createBot(nullptr, c_team, c_skill, c_class,
                            bots[index].name);
@@ -967,7 +967,7 @@ void StartFrame() {
 
             UTIL_BuildFileNameRB("bot.cfg", filename);
 
-            std::sprintf(msg, "Executing %s\n", filename);
+            snprintf(msg, sizeof(msg), "Executing %s\n", filename);
             ALERT(at_console, msg);
 
             bot_cfg_fp = std::fopen(filename, "r");
@@ -1023,13 +1023,15 @@ void FakeClientCommand(edict_t *pBot, char *arg1, char *arg2, char *arg3) {
         return;
 
     if (arg2 == nullptr || *arg2 == 0) {
-        length = std::sprintf(&g_argv[0], "%s", arg1);
+        length = snprintf(&g_argv[0], sizeof(g_argv[0]), "%s", arg1);
         fake_arg_count = 1;
-    } else if (arg3 == nullptr || *arg3 == 0) {
-        length = std::sprintf(&g_argv[0], "%s %s", arg1, arg2);
+    }
+    else if (arg3 == nullptr || *arg3 == 0) {
+        length = snprintf(&g_argv[0], sizeof(g_argv[0]), "%s %s", arg1, arg2);
         fake_arg_count = 2;
-    } else {
-        length = std::sprintf(&g_argv[0], "%s %s %s", arg1, arg2, arg3);
+    }
+    else {
+        length = snprintf(&g_argv[0], sizeof(g_argv[0]), "%s %s %s", arg1, arg2, arg3);
         fake_arg_count = 3;
     }
 
@@ -1166,7 +1168,10 @@ void ProcessBotCfgFile() {
     cmd_line[cmd_index] = 0;     // terminate the command line
 
     // copy the command line to a server command buffer...
-    std::strcpy(server_cmd, cmd_line);
+    //TODO: To use std:string for this [APG]RoboCop[CL]
+    std::strncpy(server_cmd, cmd_line, sizeof(server_cmd));
+    server_cmd[sizeof(server_cmd) - 1] = '\0';
+
     std::strcat(server_cmd, "\n");
 
     cmd_index = 0;
@@ -1222,7 +1227,7 @@ void ProcessBotCfgFile() {
     // use 'realbot addbot' to add a bot, etc. I dont think we need more
     // it would double the work.
 
-    std::sprintf(msg, "BOT.CFG >> Executing command: %s", server_cmd);        // removed \n
+    snprintf(msg, sizeof(msg), "BOT.CFG >> Executing command: %s", server_cmd);        // removed \n
     ALERT(at_console, msg);
 
     if (IS_DEDICATED_SERVER())
@@ -1270,10 +1275,10 @@ void RealBot_ServerCommand() {
             if (Game.iMaxSentences > 10)
                 Game.iMaxSentences = 10;
 
-            std::sprintf(cMessage, "REALBOT: Chat-rate set to %d",
+            snprintf(cMessage, sizeof(cMessage), "REALBOT: Chat-rate set to %d",
                     Game.iMaxSentences);
         } else {
-            std::sprintf(cMessage,
+            snprintf(cMessage, sizeof(cMessage),
                     "REALBOT: No argument given, current chat-rate is %d",
                     Game.iMaxSentences);
 
@@ -1285,13 +1290,13 @@ void RealBot_ServerCommand() {
 	    const int iStatus = Game.createBot(pEntity, arg1, arg2, arg3, arg4);
         bot_check_time = gpGlobals->time + 8.0f;
         if (iStatus == GAME_MSG_SUCCESS)
-            std::sprintf(cMessage, "REALBOT: Successfully created bot.");
+            snprintf(cMessage, sizeof(cMessage), "REALBOT: Successfully created bot.");
 
         else if (iStatus == GAME_MSG_FAILURE)
-            std::sprintf(cMessage, "REALBOT: Failed creating bot.");
+            snprintf(cMessage, sizeof(cMessage), "REALBOT: Failed creating bot.");
 
         else if (iStatus == GAME_MSG_FAIL_SERVERFULL)
-            std::sprintf(cMessage,
+            snprintf(cMessage, sizeof(cMessage),
                     "REALBOT: Failed creating bot, server is full.");
     } else if (FStrEq(pcmd, "walkwithknife")) {
         if (arg1 != nullptr && *arg1 != 0) {
@@ -1306,15 +1311,15 @@ void RealBot_ServerCommand() {
 
             // Show amount set
             if (Game.fWalkWithKnife > 0)
-                std::sprintf(cMessage,
+                snprintf(cMessage, sizeof(cMessage),
                         "REALBOT: Bots may walk with knife for %f seconds.",
                         Game.fWalkWithKnife);
 
             else
-                std::sprintf(cMessage,
+                snprintf(cMessage, sizeof(cMessage),
                         "REALBOT: Bots may not walk with knife (value=0)");
         } else
-            std::sprintf(cMessage, "REALBOT: No valid argument given.");
+            snprintf(cMessage, sizeof(cMessage), "REALBOT: No valid argument given.");
     } else if (FStrEq(pcmd, "max")) {
         if (arg1 != nullptr && *arg1 != 0) {
             max_bots = std::atoi(arg1);
@@ -1322,11 +1327,11 @@ void RealBot_ServerCommand() {
                 max_bots = -1;
 
             // Show amount set
-            std::sprintf(cMessage, "REALBOT: Max amount of bots is set to %d.",
+            snprintf(cMessage, sizeof(cMessage), "REALBOT: Max amount of bots is set to %d.",
                     max_bots);
         } else {
             // sprintf (cMessage, "REALBOT: No valid argument given.");
-            std::sprintf(cMessage,
+            snprintf(cMessage, sizeof(cMessage),
                     "REALBOT: Max amount of bots is %d -- no valid argument given.",
                     max_bots);
         }
@@ -1335,25 +1340,25 @@ void RealBot_ServerCommand() {
         if (FStrEq(arg1, "add")) {
             if (pHostEdict != nullptr) {
                 NodeMachine.addGoal(nullptr, GOAL_IMPORTANT, pHostEdict->v.origin);
-                std::sprintf(cMessage, "REALBOT: Added important area/goal.");
+                snprintf(cMessage, sizeof(cMessage), "REALBOT: Added important area/goal.");
             } else
-                std::sprintf(cMessage, "REALBOT: Only a listen server can execute this command!");
+                snprintf(cMessage, sizeof(cMessage), "REALBOT: Only a listen server can execute this command!");
         } else if (FStrEq(arg1, "save")) {
             NodeMachine.save_important();
-            std::sprintf(cMessage,
+            snprintf(cMessage, sizeof(cMessage),
                     "REALBOT: Important Area Definitions written to INI file");
         } else if (FStrEq(arg1, "init")) {
             // clear all goals that are 'goal_important'
             NodeMachine.ClearImportantGoals();
-            std::sprintf(cMessage,
+            snprintf(cMessage, sizeof(cMessage),
                     "REALBOT: All important goals have been removed.");
         } else
-            std::sprintf(cMessage,
+            snprintf(cMessage, sizeof(cMessage),
                     "REALBOT: 'important' sub-commands are: add, save, init");
 
 
     } else if (FStrEq(pcmd, "killall")) {
-        std::sprintf(cMessage, "REALBOT: Killing all bots.");
+        snprintf(cMessage, sizeof(cMessage), "REALBOT: Killing all bots.");
         end_round = true;
     } else if (FStrEq(pcmd, "csversion")) {
         if (arg1 != nullptr && *arg1 != 0) {
@@ -1363,19 +1368,19 @@ void RealBot_ServerCommand() {
             else
                 counterstrike = 1;  // cs 1.6
             if (counterstrike == 0)
-                std::sprintf(cMessage,
+                snprintf(cMessage, sizeof(cMessage),
                         "REALBOT: Set bot-rules for Counter-Strike 1.5.");
 
             else
-                std::sprintf(cMessage,
+                snprintf(cMessage, sizeof(cMessage),
                         "REALBOT: Set bot-rules for Counter-Strike 1.6.");
         } else {
             if (counterstrike == 0)
-                std::sprintf(cMessage,
+                snprintf(cMessage, sizeof(cMessage),
                         "REALBOT: bot-rules are set for Counter-Strike 1.5.");
 
             else
-                std::sprintf(cMessage,
+                snprintf(cMessage, sizeof(cMessage),
                         "REALBOT: bot-rules are set for Counter-Strike 1.6.");
         }
     } else if (FStrEq(pcmd, "internet")) {
@@ -1389,12 +1394,12 @@ void RealBot_ServerCommand() {
             else
                 internet_play = true;
             if (internet_play)
-                std::sprintf(cMessage, "REALBOT: Internet simulation - enabled.");
+                snprintf(cMessage, sizeof(cMessage), "REALBOT: Internet simulation - enabled.");
 
             else
-                std::sprintf(cMessage, "REALBOT: Internet simulation - disabled.");
+                snprintf(cMessage, sizeof(cMessage), "REALBOT: Internet simulation - disabled.");
         } else
-            std::sprintf(cMessage, "REALBOT: No valid argument given.");
+            snprintf(cMessage, sizeof(cMessage), "REALBOT: No valid argument given.");
     } else if (FStrEq(pcmd, "internet_interval")) {
 
         // 1st argument
@@ -1420,7 +1425,7 @@ void RealBot_ServerCommand() {
             }
         }
         // Create message
-        std::sprintf(cMessage,
+        snprintf(cMessage, sizeof(cMessage),
                 "REALBOT: Internet simulation - Interval set to, MIN %d - MAX %d",
                 internet_min_interval, internet_max_interval);
     } else if (FStrEq(pcmd, "remove") && kick_amount_bots == 0) {
@@ -1449,16 +1454,16 @@ void RealBot_ServerCommand() {
             kick_bots_team = team;
         }
         if (kick_bots_team < 1)
-            std::sprintf(cMessage, "REALBOT: Removing randomly %d bots.",
+            snprintf(cMessage, sizeof(cMessage), "REALBOT: Removing randomly %d bots.",
                     kick_amount_bots);
 
         else {
             if (kick_bots_team == 1)
-                std::sprintf(cMessage, "REALBOT: Removing %d terrorist bots.",
+                snprintf(cMessage, sizeof(cMessage), "REALBOT: Removing %d terrorist bots.",
                         kick_amount_bots);
 
             else
-                std::sprintf(cMessage,
+                snprintf(cMessage, sizeof(cMessage),
                         "REALBOT: Removing %d counter-terrorist bots.",
                         kick_amount_bots);
         }
@@ -1477,11 +1482,11 @@ void RealBot_ServerCommand() {
             if (arg2 != nullptr && *arg2 != 0)
                 s2 = std::atoi(arg2);
             Game.SetPlayingRounds(s1, s2);
-            std::sprintf(cMessage,
+            snprintf(cMessage, sizeof(cMessage),
                     "REALBOT: Bots play at minimum %d and at maximum %d rounds.\n",
                     Game.GetMinPlayRounds(), Game.GetMaxPlayRounds());
         } else
-            std::sprintf(cMessage,
+            snprintf(cMessage, sizeof(cMessage),
                     "REALBOT: No(t) (enough) valid arguments given.");
     } else if (FStrEq(pcmd, "setrandom")) {
         int s1 = -2, s2 = -2;
@@ -1496,7 +1501,7 @@ void RealBot_ServerCommand() {
 
         // When first argument is invalid
         if (s1 < -1) {
-            std::sprintf(cMessage,
+            snprintf(cMessage, sizeof(cMessage),
                     "REALBOT: No valid argument(s) given. (minimum random skill=%d, maximum random skill=%d).",
                     Game.iRandomMinSkill, Game.iRandomMaxSkill);
         } else {
@@ -1514,7 +1519,7 @@ void RealBot_ServerCommand() {
                 s2 = s1;
             Game.iRandomMinSkill = s1;
             Game.iRandomMaxSkill = s2;
-            std::sprintf(cMessage,
+            snprintf(cMessage, sizeof(cMessage),
                     "REALBOT: minimum random skill=%d, maximum random skill=%d.",
                     Game.iRandomMinSkill, Game.iRandomMaxSkill);
         }
@@ -1528,10 +1533,10 @@ void RealBot_ServerCommand() {
                 autoskill = false;
         }
         if (autoskill)
-            std::sprintf(cMessage, "REALBOT: Auto adjust skill - enabled.");
+            snprintf(cMessage, sizeof(cMessage), "REALBOT: Auto adjust skill - enabled.");
 
         else
-            std::sprintf(cMessage, "REALBOT: Auto adjust skill - disabled.");
+            snprintf(cMessage, sizeof(cMessage), "REALBOT: Auto adjust skill - disabled.");
     } else if (FStrEq(pcmd, "override_skill")) {
         if (arg1 != nullptr && *arg1 != 0) {
 	        const int temp = std::atoi(arg1);
@@ -1542,26 +1547,26 @@ void RealBot_ServerCommand() {
                 Game.iOverrideBotSkill = GAME_NO;
         }
         if (Game.iOverrideBotSkill == GAME_YES)
-            std::sprintf(cMessage,
+            snprintf(cMessage, sizeof(cMessage),
                     "REALBOT: Using personality skill (if present) instead of default bot skill.");
 
         else
-            std::sprintf(cMessage,
+            snprintf(cMessage, sizeof(cMessage),
                     "REALBOT: Using default bot skill at all times.");
     } else if (FStrEq(pcmd, "skill")) {
         if (arg1 != nullptr && *arg1 != 0) {
 	        const int temp = std::atoi(arg1);
             if (temp < -1 || temp > 10) {
-                std::sprintf(cMessage,
+                snprintf(cMessage, sizeof(cMessage),
                         "REALBOT: Invalid argument given - default skill = %d.",
                         Game.iDefaultBotSkill);
             } else {
                 Game.iDefaultBotSkill = temp;
-                std::sprintf(cMessage, "REALBOT: Default skill = %d",
+                snprintf(cMessage, sizeof(cMessage), "REALBOT: Default skill = %d",
                         Game.iDefaultBotSkill);
             }
         } else {
-            std::sprintf(cMessage, "REALBOT: Default skill = %d",
+            snprintf(cMessage, sizeof(cMessage), "REALBOT: Default skill = %d",
                     Game.iDefaultBotSkill);
         }
     }
@@ -1582,7 +1587,7 @@ void RealBot_ServerCommand() {
                 f_minplayers_think = gpGlobals->time;
             }
 
-            std::sprintf(cMessage, "RBSERVER: Minimum playing forced to %d.",
+            snprintf(cMessage, sizeof(cMessage), "RBSERVER: Minimum playing forced to %d.",
                     min_players);
         }
             // Broadcast
@@ -1598,11 +1603,11 @@ void RealBot_ServerCommand() {
                         temp = 1;
                     Game.iVersionBroadcasting = temp;
                     if (Game.iVersionBroadcasting == BROADCAST_ROUND)
-                        std::sprintf(cMessage,
+                        snprintf(cMessage, sizeof(cMessage),
                                 "RBSERVER: Broadcasting RealBot version every round and map change.\n");
 
                     else
-                        std::sprintf(cMessage,
+                        snprintf(cMessage, sizeof(cMessage),
                                 "RBSERVER: Broadcasting RealBot version every map change only.\n");
                 }
             } else if (FStrEq(arg2, "speech")) {
@@ -1614,9 +1619,9 @@ void RealBot_ServerCommand() {
                 }
 
                 if (Game.bSpeechBroadcasting)
-                    std::sprintf(cMessage, "RBSERVER: Broadcasting speech is ON");
+                    snprintf(cMessage, sizeof(cMessage), "RBSERVER: Broadcasting speech is ON");
                 else
-                    std::sprintf(cMessage, "RBSERVER: Broadcasting speech is OFF");
+                    snprintf(cMessage, sizeof(cMessage), "RBSERVER: Broadcasting speech is OFF");
 
             } else if (FStrEq(arg2, "kills")) {
                 // How do we broadcast kills by bots?
@@ -1633,24 +1638,24 @@ void RealBot_ServerCommand() {
                     if (temp == 2)
                         Game.iKillsBroadcasting = BROADCAST_KILLS_NONE;
                     if (Game.iKillsBroadcasting == BROADCAST_KILLS_FULL)
-                        std::sprintf(cMessage,
+                        snprintf(cMessage, sizeof(cMessage),
                                 "RBSERVER: Broadcasting name and skill of bot who killed human player.\n");
 
                     else if (Game.iKillsBroadcasting == BROADCAST_KILLS_MIN)
-                        std::sprintf(cMessage,
+                        snprintf(cMessage, sizeof(cMessage),
                                 "RBSERVER: Broadcasting name of bot who killed human player.\n");
                     else
-                        std::sprintf(cMessage,
+                        snprintf(cMessage, sizeof(cMessage),
                                 "RBSERVER: Nothing will be sent to player.\n");
                 } else {
                     if (Game.iKillsBroadcasting == BROADCAST_KILLS_FULL)
-                        std::sprintf(cMessage,
+                        snprintf(cMessage, sizeof(cMessage),
                                 "RBSERVER: Broadcasting name and skill of bot who killed human player.\n");
                     else if (Game.iKillsBroadcasting == BROADCAST_KILLS_MIN)
-                        std::sprintf(cMessage,
+                        snprintf(cMessage, sizeof(cMessage),
                                 "RBSERVER: Broadcasting name of bot who killed human player.\n");
                     else
-                        std::sprintf(cMessage,
+                        snprintf(cMessage, sizeof(cMessage),
                                 "RBSERVER: Nothing will be sent to player.\n");
                 }
             } else if (FStrEq(arg2, "deaths")) {
@@ -1668,31 +1673,31 @@ void RealBot_ServerCommand() {
                     if (temp == 2)
                         Game.iDeathsBroadcasting = BROADCAST_DEATHS_NONE;
                     if (Game.iDeathsBroadcasting == BROADCAST_DEATHS_FULL)
-                        std::sprintf(cMessage,
+                        snprintf(cMessage, sizeof(cMessage),
                                 "RBSERVER: Broadcasting name and skill of bot who killed human player.\n");
                     else if (Game.iDeathsBroadcasting == BROADCAST_DEATHS_MIN)
-                        std::sprintf(cMessage,
+                        snprintf(cMessage, sizeof(cMessage),
                                 "RBSERVER: Broadcasting name of bot who killed human player.\n");
                     else
-                        std::sprintf(cMessage,
+                        snprintf(cMessage, sizeof(cMessage),
                                 "RBSERVER: Nothing will be sent to player.\n");
                 } else {
                     if (Game.iDeathsBroadcasting == BROADCAST_DEATHS_FULL)
-                        std::sprintf(cMessage,
+                        snprintf(cMessage, sizeof(cMessage),
                                 "RBSERVER: Broadcasting name and skill of bot who killed human player.\n");
                     else if (Game.iDeathsBroadcasting == BROADCAST_DEATHS_MIN)
-                        std::sprintf(cMessage,
+                        snprintf(cMessage, sizeof(cMessage),
                                 "RBSERVER: Broadcasting name of bot who killed human player.\n");
                     else
-                        std::sprintf(cMessage,
+                        snprintf(cMessage, sizeof(cMessage),
                                 "RBSERVER: Nothing will be sent to player.\n");
                 }
             } else {
-                std::sprintf(cMessage,
+                snprintf(cMessage, sizeof(cMessage),
                         "RBSERVER: Broadcast what?\nversion\nspeech\nkills\ndeaths");
             }
         } else
-            std::sprintf(cMessage,
+            snprintf(cMessage, sizeof(cMessage),
                     "RBSERVER: Invalid sub-command.\nValid commands are:\nbroadcast (version/kill)\nplayers (keep ## player slots full)");
     }
         // -----------------------------------------
@@ -1720,11 +1725,11 @@ void RealBot_ServerCommand() {
                                 NodeMachine.add_neighbour_node(iOnNode, iTo);
 
                         if (bSuccess)
-                            std::sprintf(cMessage,
+                            snprintf(cMessage, sizeof(cMessage),
                                     "NODES EDITOR: Added connection from node %d to node %d.",
                                     iOnNode, iTo);
                         else
-                            std::sprintf(cMessage,
+                            snprintf(cMessage, sizeof(cMessage),
                                     "NODES EDITOR: Connection could not be added, max amount of connections reached or connection already exists.");
 
                         bValidArg = true;
@@ -1732,7 +1737,7 @@ void RealBot_ServerCommand() {
                 }
 
                 if (bValidArg == false)
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "NODES EDITOR: Give argument to which node this connection is valid!");
             } else if (FStrEq(arg1, "removeto")) {
                 // removes connection TO
@@ -1748,11 +1753,11 @@ void RealBot_ServerCommand() {
                                 NodeMachine.removeConnection(iOnNode, iTo);
 
                         if (bSuccess)
-                            std::sprintf(cMessage,
+                            snprintf(cMessage, sizeof(cMessage),
                                     "NODES EDITOR: Removed connection from node %d to node %d.",
                                     iOnNode, iTo);
                         else
-                            std::sprintf(cMessage,
+                            snprintf(cMessage, sizeof(cMessage),
                                     "NODES EDITOR: Could not remove connection, connection does not exist.");
 
                         bValidArg = true;
@@ -1760,14 +1765,14 @@ void RealBot_ServerCommand() {
                 }
 
                 if (bValidArg == false)
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "NODES EDITOR: Give argument to which node this connection is valid!");
 
             } else if (FStrEq(arg1, "removeall")) {
 	            const bool bSuccess = NodeMachine.remove_neighbour_nodes(iOnNode);
 
                 if (bSuccess)
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "NODES EDITOR: Removed all connections from node %d.",
                             iOnNode);
             } else if (FStrEq(arg1, "draw")) {
@@ -1776,9 +1781,9 @@ void RealBot_ServerCommand() {
                 else
                     draw_nodes = false;
                 if (draw_nodes)
-                    std::sprintf(cMessage, "NODES EDITOR: Drawing nodes - enabled.");
+                    snprintf(cMessage, sizeof(cMessage), "NODES EDITOR: Drawing nodes - enabled.");
                 else
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "NODES EDITOR: Drawing nodes - disabled.");
             } else if (FStrEq(arg1, "connections")) {
                 if (draw_connodes == false)
@@ -1787,22 +1792,22 @@ void RealBot_ServerCommand() {
                     draw_connodes = false;
 
                 if (draw_connodes)
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "NODES EDITOR: Drawing nodes connections - enabled.");
                 else
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "NODES EDITOR: Drawing nodes connections - disabled.");
             } else if (FStrEq(arg1, "init")) {
                 NodeMachine.init();
-                std::sprintf(cMessage, "NODES EDITOR: Nodes initialized.");
+                snprintf(cMessage, sizeof(cMessage), "NODES EDITOR: Nodes initialized.");
             } else if (FStrEq(arg1, "save")) {
                 NodeMachine.save();
-                std::sprintf(cMessage, "NODES EDITOR: Nodes saved.");
+                snprintf(cMessage, sizeof(cMessage), "NODES EDITOR: Nodes saved.");
             } else if (FStrEq(arg1, "load")) {
                 NodeMachine.load();
-                std::sprintf(cMessage, "NODES EDITOR: Nodes loaded.");
+                snprintf(cMessage, sizeof(cMessage), "NODES EDITOR: Nodes loaded.");
             } else {
-                std::sprintf(cMessage,
+                snprintf(cMessage, sizeof(cMessage),
                         "NODES EDITOR: Unknown command\n Valid commands are:\naddto,removeto,removeall,draw,connections,init,save,load.");
             }
         } else {
@@ -1814,9 +1819,9 @@ void RealBot_ServerCommand() {
                 else
                     draw_nodes = false;
                 if (draw_nodes)
-                    std::sprintf(cMessage, "NODES EDITOR: Drawing nodes - enabled.");
+                    snprintf(cMessage, sizeof(cMessage), "NODES EDITOR: Drawing nodes - enabled.");
                 else
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "NODES EDITOR: Drawing nodes - disabled.");
             } else if (FStrEq(arg1, "connections")) {
                 if (draw_connodes == false)
@@ -1825,22 +1830,22 @@ void RealBot_ServerCommand() {
                     draw_connodes = false;
 
                 if (draw_connodes)
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "NODES EDITOR: Drawing nodes connections - enabled.");
                 else
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "NODES EDITOR: Drawing nodes connections - disabled.");
             } else if (FStrEq(arg1, "init")) {
                 NodeMachine.init();
-                std::sprintf(cMessage, "NODES EDITOR: Nodes initialized.");
+                snprintf(cMessage, sizeof(cMessage), "NODES EDITOR: Nodes initialized.");
             } else if (FStrEq(arg1, "save")) {
                 NodeMachine.save();
-                std::sprintf(cMessage, "NODES EDITOR: Nodes saved.");
+                snprintf(cMessage, sizeof(cMessage), "NODES EDITOR: Nodes saved.");
             } else if (FStrEq(arg1, "load")) {
                 NodeMachine.load();
-                std::sprintf(cMessage, "NODES EDITOR: Nodes loaded.");
+                snprintf(cMessage, sizeof(cMessage), "NODES EDITOR: Nodes loaded.");
             } else
-                std::sprintf(cMessage,
+                snprintf(cMessage, sizeof(cMessage),
                         "NODES EDITOR: Not close enough to a node to edit.");
         }                         // commands not needed for a node to be close
 
@@ -1855,14 +1860,14 @@ void RealBot_ServerCommand() {
 	            const int Node2 = std::atoi(arg3);     // add connection TO
                 if (Node1 >= 0 && Node2 >= 0
                     && NodeMachine.add_neighbour_node(Node1, Node2))
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "NODES EDITOR: Added connection from node %d to node %d.",
                             Node1, Node2);
                 else
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "NODES EDITOR: Connection could not be added, max amount of connections reached or connection already exists.");
             } else
-                std::sprintf(cMessage,
+                snprintf(cMessage, sizeof(cMessage),
                         "NODES EDITOR: this command requires TWO numeric arguments!");
         } else if (FStrEq(arg1, "disconnect")) {
             // check for valid argument
@@ -1872,14 +1877,14 @@ void RealBot_ServerCommand() {
 	            const int Node2 = std::atoi(arg3);
                 if (Node1 >= 0 && Node2 >= 0
                     && NodeMachine.removeConnection(Node1, Node2))
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "NODES EDITOR: Removed connection from node %d to node %d.",
                             Node1, Node2);
                 else
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "NODES EDITOR: Connection could not be removed...");
             } else
-                std::sprintf(cMessage,
+                snprintf(cMessage, sizeof(cMessage),
                         "NODES EDITOR: this command requires TWO numeric arguments!");
         }
     }
@@ -1900,9 +1905,9 @@ void RealBot_ServerCommand() {
             }
 
             if (Game.bDoNotShoot)
-                std::sprintf(cMessage, "RBDEBUG: Bots will not shoot.");
+                snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Bots will not shoot.");
             else
-                std::sprintf(cMessage, "RBDEBUG: Bots will shoot.");
+                snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Bots will shoot.");
         }
             // 17/07/04
         else if (FStrEq(arg1, "pistols")) { // realbot debug pistols [1/0]
@@ -1915,9 +1920,9 @@ void RealBot_ServerCommand() {
             }
 
             if (Game.bPistols)
-                std::sprintf(cMessage, "RBDEBUG: Bots will only use pistols.");
+                snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Bots will only use pistols.");
             else
-                std::sprintf(cMessage, "RBDEBUG: Bots will use all weapons.");
+                snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Bots will use all weapons.");
         } else if (FStrEq(arg1, "goals")) // Print all current goals
         {
             NodeMachine.dump_goals();
@@ -1935,33 +1940,33 @@ void RealBot_ServerCommand() {
         } else if (FStrEq(arg1, "print")) { // realbot debug print (toggles, and last argument is bot index)
             if (Game.bDebug > -2) {
                 Game.bDebug = -2;
-                std::sprintf(cMessage, "RBDEBUG: Debug messages off.");
+                snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Debug messages off.");
             } else {
                 if (arg2 != nullptr && *arg2 != 0) {
 	                const int temp = std::atoi(arg2);
                     Game.bDebug = temp;
-                    std::sprintf(cMessage, "RBDEBUG: Debug messages on for bot [%d].", Game.bDebug);
+                    snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Debug messages on for bot [%d].", Game.bDebug);
                 } else {
                     Game.bDebug = -1;
-                    std::sprintf(cMessage, "RBDEBUG: Debug messages on for all bots"/*, Game.bDebug*/);
+                    snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Debug messages on for all bots"/*, Game.bDebug*/);
                 }
             }
         } else if (FStrEq(arg1, "verbosity")) { // realbot verbosity
             if (FStrEq(arg2, "low")) {
-                std::sprintf(cMessage, "RBDEBUG: Message verbosity low.");
+                snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Message verbosity low.");
                 Game.messageVerbosity = 0;
             } else if (FStrEq(arg2, "normal")) {
-                std::sprintf(cMessage, "RBDEBUG: Message verbosity normal.");
+                snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Message verbosity normal.");
                 Game.messageVerbosity = 1;
             } else if (FStrEq(arg2, "trace")) {
-                std::sprintf(cMessage, "RBDEBUG: Message verbosity trace.");
+                snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Message verbosity trace.");
                 Game.messageVerbosity = 2; // extreme verbose
             } else {
-                std::sprintf(cMessage, "RBDEBUG: Usage: realbot debug verbosity [low][normal][trace]");
+                snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Usage: realbot debug verbosity [low][normal][trace]");
             }
         } else if (FStrEq(arg1, "nodes")) { // realbot debug nodes
             if (FStrEq(arg2, "dumpbmp")) { // realbot debug nodes dumpbmp
-                std::sprintf(cMessage, "RBDEBUG: Dumping Nodes information into bitmap file");
+                snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Dumping Nodes information into bitmap file");
                 NodeMachine.Draw();
             } else if (FStrEq(arg2, "draw")) {
                 if (draw_nodes == false)
@@ -1969,9 +1974,9 @@ void RealBot_ServerCommand() {
                 else
                     draw_nodes = false;
                 if (draw_nodes)
-                    std::sprintf(cMessage, "RBDEBUG: Drawing nodes - enabled.");
+                    snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Drawing nodes - enabled.");
                 else
-                    std::sprintf(cMessage, "RBDEBUG: Drawing nodes - disabled.");
+                    snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Drawing nodes - disabled.");
             } else if (FStrEq(arg2, "path")) {
                 int iFrom = -1, iTo = -1;
                 if (arg3 != nullptr && *arg3 != 0)
@@ -1985,18 +1990,18 @@ void RealBot_ServerCommand() {
                         if (ptr) iTo = ptr->iNode;
                     }
 
-                    std::sprintf(cMessage, "RBDEBUG: Creating path from [%d] to [%d].", iFrom, iTo);
+                    snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Creating path from [%d] to [%d].", iFrom, iTo);
                     NodeMachine.createPath(iFrom, iTo, 0, nullptr, PATH_DANGER);
                 } else {
-                    std::sprintf(cMessage, "RBDEBUG: Usage: realbot debug nodes path <fromNode> <toNode>");
+                    snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Usage: realbot debug nodes path <fromNode> <toNode>");
                 }
             } else if (FStrEq(arg2, "drawpath")) {
                 if (arg3 != nullptr && *arg3 != 0)
                     draw_nodepath = std::atoi(arg3);
                 if (draw_nodepath > -1) {
-                    std::sprintf(cMessage, "RBDEBUG: Drawing path of bot id [%d].", draw_nodepath);
+                    snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Drawing path of bot id [%d].", draw_nodepath);
                 } else
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "RBDEBUG: Drawing path of bot id [%d] - no better or valid argument given.",
                             draw_nodepath);
             } else if (FStrEq(arg2, "connections")) {
@@ -2006,30 +2011,30 @@ void RealBot_ServerCommand() {
                     draw_connodes = false;
 
                 if (draw_connodes)
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "RBDEBUG: Drawing nodes connections - enabled.");
                 else
-                    std::sprintf(cMessage,
+                    snprintf(cMessage, sizeof(cMessage),
                             "RBDEBUG: Drawing nodes connections - disabled.");
             } else if (FStrEq(arg2, "init")) {
                 NodeMachine.init();
-                std::sprintf(cMessage, "RBDEBUG: Nodes initialized.");
+                snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Nodes initialized.");
             } else if (FStrEq(arg2, "save")) {
                 NodeMachine.save();
-                std::sprintf(cMessage, "RBDEBUG: Nodes saved.");
+                snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Nodes saved.");
             } else if (FStrEq(arg2, "load")) {
                 NodeMachine.load();
-                std::sprintf(cMessage, "RBDEBUG: Nodes loaded.");
+                snprintf(cMessage, sizeof(cMessage), "RBDEBUG: Nodes loaded.");
             } else
-                std::sprintf(cMessage, "RBDEBUG: No argument given.");
+                snprintf(cMessage, sizeof(cMessage), "RBDEBUG: No argument given.");
         } else {
-            std::sprintf(cMessage,
+            snprintf(cMessage, sizeof(cMessage),
                     "RBDEBUG: Unknown debug command.\n\nKnown commands are:\ndontshoot, pistols, nodes, print");
         }
     } else {
 
         // Not a valid command
-        std::sprintf(cMessage,
+        snprintf(cMessage, sizeof(cMessage),
                 "REALBOT: Unknown command.\nValid commands are:\nhelp, add, remove, skill, max, debug, server");
         bool bValidCommand = false; //Unused variable boolean [APG]RoboCop[CL]
     }
@@ -2079,7 +2084,7 @@ int Spawn_Post(edict_t *pent) {
     }
 
     char msg[255];
-    std::sprintf(msg, "Found an entity %s - %s - %s with rendermode %d!\n", STRING(pent->v.classname), STRING(pent->v.netname), STRING(pent->v.model), pent->v.rendermode);
+    snprintf(msg, sizeof(msg), "Found an entity %s - %s - %s with rendermode %d!\n", STRING(pent->v.classname), STRING(pent->v.netname), STRING(pent->v.model), pent->v.rendermode);
     rblog(msg);
 
     // is this a trigger_multiple ?

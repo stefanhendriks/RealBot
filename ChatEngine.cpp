@@ -56,14 +56,15 @@ extern cBot bots[32];
 void
 cChatEngine::init() {
     // clear all blocks
-    for (int iB = 0; iB < MAX_BLOCKS; iB++) {
+    for (tReplyBlock& iB : ReplyBlock)
+    {
         for (int iBs = 0; iBs < 50; iBs++)
-            ReplyBlock[iB].sentence[iBs][0] = '\0';
+	        iB.sentence[iBs][0] = '\0';
 
         for (int iBw = 0; iBw < 10; iBw++)
-            ReplyBlock[iB].word[iBw][0] = '\0';
+	        iB.word[iBw][0] = '\0';
 
-        ReplyBlock[iB].bUsed = false;
+        iB.bUsed = false;
     }
 
     iLastBlock = -1;
@@ -101,10 +102,7 @@ void cChatEngine::think() {
         edict_t *pPlayer = INDEXENT(i);
 
         if (pPlayer && !pPlayer->free) {
-            char name[30], name2[30];
-            // clear
-            std::memset(name, 0, sizeof(name));
-            std::memset(name2, 0, sizeof(name2));
+            char name[30] = {}, name2[30] = {};
 
             // copy
             std::strcpy(name, STRING(pPlayer->v.netname));
@@ -119,9 +117,8 @@ void cChatEngine::think() {
     // Edict pointer established
 
     // Scan the message so we know in what block we should be to reply:
-    char word[20];
-    std::memset(word, 0, sizeof(word));
-	
+    char word[20] = {};
+
     int c = 0;
     int wc = 0;
 
@@ -144,8 +141,9 @@ void cChatEngine::think() {
     int WordBlockScore[MAX_BLOCKS];
 
     // Init, none of the block has a score yet (set to -1)
-    for (int wbs = 0; wbs < MAX_BLOCKS; wbs++) {
-        WordBlockScore[wbs] = -1;
+    for (int& wbs : WordBlockScore)
+    {
+	    wbs = -1;
     }
 
     // loop over the sentence character by character
@@ -174,17 +172,18 @@ void cChatEngine::think() {
             } else {
                 for (int iB = 0; iB < MAX_BLOCKS; iB++) {
                     if (ReplyBlock[iB].bUsed) {
-                        for (int iBw = 0; iBw < 10; iBw++) {
+                        for (char (&iBw)[25] : ReplyBlock[iB].word)
+                        {
                             // skip any word in the reply block that is not valid
-                            if (ReplyBlock[iB].word[iBw][0] == '\0')
+                            if (iBw[0] == '\0')
                                 continue; // not filled in
 
-                            if (std::strlen(ReplyBlock[iB].word[iBw]) <= 0)
+                            if (std::strlen(iBw) <= 0)
                                 continue; // not long enough (a space?)
 
                             // 03/07/04
                             // add score to matching word (evy: ignoring case)
-                            if (std::strcmp(ReplyBlock[iB].word[iBw], word) == 0)
+                            if (std::strcmp(iBw, word) == 0)
                                 WordBlockScore[iB]++;
                         }       // all words in this block
                     }          // any used block
@@ -231,9 +230,10 @@ void cChatEngine::think() {
         int iMax = -1;
 
         // now choose a sentence to reply with
-        for (int iS = 0; iS < 50; iS++) {
+        for (char (&iS)[128] : ReplyBlock[iTheBlock].sentence)
+        {
             // Find max sentences of this reply block
-            if (ReplyBlock[iTheBlock].sentence[iS][0] != '\0')
+            if (iS[0] != '\0')
                 iMax++;
         }
 
@@ -339,7 +339,7 @@ void cChatEngine::think() {
                                     // terminate
                                     temp[tc] = '\n';
 
-                                    std::sprintf(chSentence, "%s \n", temp);
+                                    snprintf(chSentence, sizeof(chSentence), "%s \n", temp);
                                 }
                                     // when no name pos is found, we just copy the string and say that (works ok)
                                 else

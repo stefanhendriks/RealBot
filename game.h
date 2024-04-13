@@ -57,8 +57,8 @@
 #define BROADCAST_DEATHS_MIN    7       // died, show min info (name)
 #define BROADCAST_DEATHS_NONE   8       // died, show no information
 
-static const int MAX_BOTS = 32;
-static const int MAX_NAME_LENGTH = 32;
+static constexpr int MAX_BOTS = 32;
+static constexpr int MAX_NAME_LENGTH = 32;
 
 // Debug messages for realbot
 void REALBOT_PRINT(cBot * pBot, const char *Function, const char *msg);

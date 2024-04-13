@@ -32,9 +32,19 @@ if builder.cxx.target.platform == 'linux':
   builder.cxx.defines += ['_LINUX', 'POSIX', 'LINUX', 'linux']
   # Linux compiler C flags
   builder.cxx.cflags += [
+    '-mtune=generic',
     '-pipe',
     '-fPIC',
+    '-mmmx',
+    '-msse',
     '-msse2',
+    '-msse3',
+    '-mssse3',
+    '-msse4',
+    '-msse4a',
+    '-msse4.1',
+    '-msse4.2',
+    '-mfpmath=sse',
     '-fno-strict-aliasing',
     '-Wall',
     '-Werror',

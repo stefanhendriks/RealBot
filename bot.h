@@ -626,7 +626,7 @@ void UTIL_SelectItem(edict_t *pEdict, char *item_name);
 
 void UTIL_BuildFileName(char *filename, char *arg1, char *arg2);
 
-void UTIL_BuildFileNameRB(char *subdir, char *filename);
+void UTIL_BuildFileNameRB(const char *subdir, char *filename);
 
 unsigned short fixed_unsigned16(float value, float scale); //redundant declaration? [APG]RoboCop[CL]
 

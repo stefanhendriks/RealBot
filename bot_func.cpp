@@ -54,7 +54,7 @@ extern cNodeMachine NodeMachine;
 // For taking cover decision
 #define TOTAL_SCORE 16300       // 16000 money + 100 health + 100 fear + 100 camp desire
 
-bool VectorIsVisibleWithEdict(edict_t *pEdict, const Vector& dest, char *checkname) {
+bool VectorIsVisibleWithEdict(edict_t *pEdict, const Vector& dest, const char *checkname) {
     TraceResult tr;
 
     const Vector start = pEdict->v.origin + pEdict->v.view_ofs;
@@ -273,7 +273,7 @@ edict_t * getPlayerNearbyBotInFOV(cBot *pBot) {
 
         // skip invalid players and skip self (i.e. this bot)
         if (pPlayer && !pPlayer->free && pPlayer != pEdict) {
-	        const int fov = 90;// TODO: use server var "default_fov" ?
+	        constexpr int fov = 90;// TODO: use server var "default_fov" ?
 	        // skip this player if not alive (i.e. dead or dying)
             if (!IsAlive(pPlayer))
                 continue;
@@ -285,11 +285,10 @@ edict_t * getPlayerNearbyBotInFOV(cBot *pBot) {
 
             const int angleToPlayer = FUNC_InFieldOfView(pBot->pEdict, pPlayer->v.origin - pBot->pEdict->v.origin);
 
-            const int distance = NODE_ZONE;
+	        constexpr int distance = NODE_ZONE;
             if (func_distance(pBot->pEdict->v.origin, pPlayer->v.origin) < distance && angleToPlayer < fov) {
                 return pPlayer;
             }
-
         }
     }
     return nullptr;
@@ -339,11 +338,10 @@ bool isAnyPlayerNearbyBot(cBot *pBot) {
 
             //int angleToPlayer = FUNC_InFieldOfView(pBot->pEdict, (pPlayer->v.origin - pBot->pEdict->v.origin));
 
-            const int distance = NODE_ZONE;
+            constexpr int distance = NODE_ZONE;
             if (func_distance(pBot->pEdict->v.origin, pPlayer->v.origin) < distance) {
                 return true;
             }
-
         }
     }
     return false;
@@ -364,7 +362,7 @@ bool BotShouldJumpIfStuck(cBot *pBot) {
 
     if (pBot->iJumpTries > 5) {
         char msg[255];
-        std::sprintf(msg, "Returning false because jumped too many times (%d)", pBot->iJumpTries);
+        snprintf(msg, sizeof(msg), "Returning false because jumped too many times (%d)", pBot->iJumpTries);
         pBot->rprint_trace("BotShouldJumpIfStuck", msg);
         return false;
     }
@@ -1178,7 +1176,7 @@ bool BOT_DecideTakeCover(cBot *pBot) {
 }
 
 // logs into a file
-void rblog(char *txt) {
+void rblog(const char* txt) {
     // output to stdout
     printf("%s", txt);
 

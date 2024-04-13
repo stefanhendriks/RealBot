@@ -401,8 +401,8 @@ int INI_WordValueINT(char result[80]) {
 			char number[10];
 
 			// clear out entire string
-			for (int i = 0; i < 10; i++)
-				number[i] = '\0';
+			for (char& i : number)
+				i = '\0';
 
 			// Copy the part to 'number', Make sure we won't get outside the array of the character.
 			int cp = is_pos + 1;
@@ -462,8 +462,8 @@ float INI_WordValueFLOAT(char result[80]) {
 			char number[10];
 
 			// clear out entire string
-			for (int i = 0; i < 10; i++)
-				number[i] = '\0';
+			for (char& i : number)
+				i = '\0';
 
 			// Copy the part to 'number', Make sure we won't get outside the array of the character.
 			int cp = is_pos + 1;
@@ -613,8 +613,7 @@ void INI_PARSE_CHATFILE() {
 						iBlockWord = 9;
 
 					// write the word in the block
-					char chWord[25];
-					std::memset(chWord, 0, sizeof(chWord));
+					char chWord[25] = {};
 					INI_WordValueCHAR(linefeed, chWord);
 					// lower case
 					//chWord = _strlwr( _strdup( chWord ) );
@@ -644,8 +643,7 @@ void INI_PARSE_CHATFILE() {
 						iBlockSentence = 49;
 
 					// write the word in the block
-					char chSentence[80];
-					std::memset(chSentence, 0, sizeof(chSentence));
+					char chSentence[80] = {};
 					INI_WordValueCHAR(linefeed, chSentence);
 					std::strcpy(ChatEngine.ReplyBlock[iBlockId].
 						sentence[iBlockSentence], chSentence);

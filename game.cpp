@@ -126,9 +126,9 @@ void cGame::InitNewRound() {
     DetermineMapGoal();
 
     // initialize bots for new round
-    for (int i = 0; i < MAX_BOTS; i++) {
-        cBot &bot = bots[i];
-        if (bot.bIsUsed) {
+    for (auto& bot : bots)
+    {
+	    if (bot.bIsUsed) {
             bot.NewRound();
         }
     }
@@ -170,9 +170,8 @@ void cGame::DetermineMapGoal() const
         hostagesFound++;
     }
 
-    char msg[255];
-    std::memset(msg, 0, sizeof(msg));
-    std::sprintf(msg, "DetermineMapGoal: There are %d hostages found to rescue\n", hostagesFound);
+    char msg[255] = {};
+    snprintf(msg, sizeof(msg), "DetermineMapGoal: There are %d hostages found to rescue\n", hostagesFound);
     rblog(msg);
     Game.bHostageRescueMap = hostagesFound > 0;
 
@@ -188,7 +187,7 @@ void cGame::DetermineMapGoal() const
     }
 
     std::memset(msg, 0, sizeof(msg));
-    std::sprintf(msg, "DetermineMapGoal: There are %d rescue zones found\n", rescueZonesFound);
+    snprintf(msg, sizeof(msg), "DetermineMapGoal: There are %d rescue zones found\n", rescueZonesFound);
     rblog(msg);
     Game.bHostageRescueZoneFound = rescueZonesFound > 0;
 
@@ -204,7 +203,7 @@ void cGame::DetermineMapGoal() const
         bombSpots++;
     }
     std::memset(msg, 0, sizeof(msg));
-    std::sprintf(msg, "DetermineMapGoal: There are %d bomb spots in this level\n", bombSpots);
+    snprintf(msg, sizeof(msg), "DetermineMapGoal: There are %d bomb spots in this level\n", bombSpots);
     Game.bBombPlantMap = bombSpots > 0;
     rblog(msg);
 }
@@ -334,8 +333,9 @@ void cGame::SelectName(char *name) const
 	int iNameIndex = 0;              // zero based (RANDOM_LONG (0, iAmountNames-1))
 
     bool iNameUsed[MAX_BOT_NAMES];
-    for (int i = 0; i < MAX_BOT_NAMES; i++) {
-        iNameUsed[i] = false;
+    for (bool& i : iNameUsed)
+    {
+	    i = false;
     }
 
     // check make sure this name isn't used
@@ -476,8 +476,7 @@ int cGame::createBot(edict_t *pPlayer, const char *teamArg, const char *skillArg
 {
 
     // NAME
-    char botName[BOT_NAME_LEN + 1];
-    std::memset(botName, 0, sizeof(botName));
+    char botName[BOT_NAME_LEN + 1] = {};
     // if name given, use that
     if (nameArg != nullptr && *nameArg != 0) {
         std::strncpy(botName, nameArg, BOT_NAME_LEN - 1);
@@ -591,8 +590,7 @@ int cGame::createBot(edict_t *pPlayer, const char *teamArg, const char *skillArg
     pBot->bot_money = 0;
 
     // clear
-    char c_skin[BOT_SKIN_LEN + 1];
-    std::memset(c_skin, 0, sizeof(c_skin));
+    constexpr char c_skin[BOT_SKIN_LEN + 1] = {};
     std::strcpy(pBot->skin, c_skin);
 
     pBot->pEdict = pBotEdict;
@@ -684,7 +682,10 @@ void REALBOT_PRINT(cBot *pBot, const char *Function, const char *msg) {
     if (pBot) {
         botIndex = pBot->iBotIndex;
         std::memset(name, 0, sizeof(name));    // clear
-        std::strcpy(name, pBot->name); // copy name
+
+        //TODO: To use std:string for this [APG]RoboCop[CL]
+        std::strncpy(name, pBot->name, sizeof(name));
+        name[sizeof(name) - 1] = '\0';
 
         if (pBot->isCounterTerrorist()) {
             std::strcpy(team, "COUNTER");
@@ -704,7 +705,7 @@ void REALBOT_PRINT(cBot *pBot, const char *Function, const char *msg) {
     const int minutesLeft = static_cast<int>(roundTimeRemaining) / 60;
     const int secondsLeft = static_cast<int>(roundTimeRemaining) % 60;
 
-    std::sprintf(cMessage, "[rb] [%s] [%0d:%02d] - [%s|%d] [%s] [%s] : %s\n", mapName, minutesLeft, secondsLeft, name, botIndex, team, Function, msg);
+    snprintf(cMessage, sizeof(cMessage), "[rb] [%s] [%0d:%02d] - [%s|%d] [%s] [%s] : %s\n", mapName, minutesLeft, secondsLeft, name, botIndex, team, Function, msg);
 
     // print in console only when on debug print
     if (Game.bDebug > -2) {

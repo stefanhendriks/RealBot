@@ -223,37 +223,38 @@ void BotDecideWhatToBuy(cBot *pBot) {
             pBot->rprint("BotDecideWhatToBuy()", "I have no primary weapon preference, deciding what to buy.");
 
             // Find weapon we can buy in the list of weapons
-            for (int i = 0; i < MAX_WEAPONS; i++) {
+            for (const weapon_price_table& i : weapons_table)
+            {
 
                 // 31.08.04 Frashman Filter Out all except PRIMARY and SHIELD
                 // SHIELD is used as primary weapon
 
-                if (UTIL_GiveWeaponType(weapons_table[i].iId) != PRIMARY
-	                && UTIL_GiveWeaponType(weapons_table[i].iId) != SHIELD)
+                if (UTIL_GiveWeaponType(i.iId) != PRIMARY
+	                && UTIL_GiveWeaponType(i.iId) != SHIELD)
                     continue;
 
                 // must be a weapon that the team can buy (CT/T weapon)
-                if (!GoodWeaponForTeam(weapons_table[i].iId, team))
+                if (!GoodWeaponForTeam(i.iId, team))
                     continue;
 
                 // can afford it
-                if (weapons_table[i].price <= money) {
+                if (i.price <= money) {
 
                     // owns a primary weapon
                     if (pBot->iPrimaryWeapon > -1) {
                         // and the primary weapon has a higher priority than the other primary weapon
-                        if (weapons_table[ListIdWeapon(pBot->iPrimaryWeapon)].priority >= weapons_table[i].priority)
+                        if (weapons_table[ListIdWeapon(pBot->iPrimaryWeapon)].priority >= i.priority)
                             continue;
                     }
 
                     // nothing to buy yet, so chose this one
                     if (buy_weapon == -1) {
-                        buy_weapon = weapons_table[i].iId;
+                        buy_weapon = i.iId;
                     } else {
                         // randomly overrule it based on priority. The higher priority the more chance
                         // it will be bought.
-                        if (RANDOM_LONG(0, 100) < weapons_table[i].priority) {
-                            buy_weapon = weapons_table[i].iId; // randomly buy a different weapon
+                        if (RANDOM_LONG(0, 100) < i.priority) {
+                            buy_weapon = i.iId; // randomly buy a different weapon
                         }
                     }
                 }
@@ -317,34 +318,35 @@ void BotDecideWhatToBuy(cBot *pBot) {
             pBot->rprint("BotDecideWhatToBuy()", "Deciding which secondary weapon to buy");
             // Buy secondary
             // Find weapon we can buy in the list of weapons
-            for (int i = 0; i < MAX_WEAPONS; i++) {
+            for (const weapon_price_table& i : weapons_table)
+            {
 
                 // When enough money and the priority is high enough..
                 // Filter out Secondary and Grenades
-                if (UTIL_GiveWeaponType(weapons_table[i].iId) != SECONDARY)
+                if (UTIL_GiveWeaponType(i.iId) != SECONDARY)
                     continue;
 
-                if (GoodWeaponForTeam(weapons_table[i].iId, team) == false)
+                if (GoodWeaponForTeam(i.iId, team) == false)
                     continue;
 
-                if (weapons_table[i].price <= money) {
+                if (i.price <= money) {
                     if (pBot->iSecondaryWeapon > -1) {
 	                    const int index =
                                 weapons_table[pBot->iSecondaryWeapon].iIdIndex;
                         // 31.08.04 Frashman > corrected to >= ,
                         // else the bot will buy another weapon with the same priority
                         if (weapons_table[index].priority >=
-                            weapons_table[i].priority)
+	                        i.priority)
                             continue;
                     }
 
                     if (buy_weapon == -1)
-                        buy_weapon = weapons_table[i].iId;
+                        buy_weapon = i.iId;
                     else {
-                        if (RANDOM_LONG(0, 100) < weapons_table[i].priority)
-                            buy_weapon = weapons_table[i].iId;
+                        if (RANDOM_LONG(0, 100) < i.priority)
+                            buy_weapon = i.iId;
                     }
-                    if (RANDOM_LONG(0, 100) < weapons_table[i].priority)
+                    if (RANDOM_LONG(0, 100) < i.priority)
                         break;
                 }
             }

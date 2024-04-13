@@ -35,6 +35,8 @@
 #ifndef NODEMACHINE_H
 #define NODEMACHINE_H
 
+#include <string>
+
 #include "bot.h"
 
 #include "NodeDataTypes.h"
@@ -207,7 +209,7 @@ private:
     static void closeNode(int nodeIndex, int parent, float cost);
     void openNeighbourNodes(int startNodeIndex, int nodeToOpenNeighboursFrom, int destinationNodeIndex, int botTeam) const;
 
-    static char *getGoalTypeAsText(const tGoal &goal);
+    static std::string getGoalTypeAsText(const tGoal& goal);
 
     int getFreeGoalIndex() const;
 

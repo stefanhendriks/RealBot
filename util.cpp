@@ -354,9 +354,10 @@ int UTIL_GetBotIndex(edict_t* pEdict) {
  * @return
  */
 cBot* UTIL_GetBotPointer(edict_t* pEdict) {
-	for (int index = 0; index < 32; index++) {
-		if (bots[index].pEdict == pEdict) {
-			return (&bots[index]);
+	for (cBot& bot : bots)
+	{
+		if (bot.pEdict == pEdict) {
+			return (&bot);
 		}
 	}
 
@@ -465,7 +466,7 @@ void UTIL_BuildFileName(char* filename, char* arg1, char* arg2) {
 
 // added by Tub
 // copies subdir/file to filename
-void UTIL_BuildFileNameRB(char* subdir, char* filename) {
+void UTIL_BuildFileNameRB(const char* subdir, char* filename) {
 #if DO_DEBUG != 0
 	char* filenamedebug = filename;
 #endif
@@ -563,7 +564,7 @@ void UTIL_BotPressKey(cBot* pBot, int type) {
 		break;
 	default:
 		char msg[255];
-		std::sprintf(msg, "unknown key to print [%d]", type);
+		snprintf(msg, sizeof(msg), "unknown key to print [%d]", type);
 		pBot->rprint_trace("UTIL_BotPressKey", msg);
 		break;
 	}
@@ -795,7 +796,7 @@ void UTIL_BotSprayLogo(edict_t* pEntity, char* logo_name) {
 }
 
 // Give a radio message botty boy!
-void UTIL_BotRadioMessage(cBot* pBot, int radio, char* arg1, char* arg2) {
+void UTIL_BotRadioMessage(cBot* pBot, int radio, const char* arg1, const char* arg2) {
 	// To be sure the console will only change when we MAY change.
 	// The values will only be changed when console_nr is 0
 	if (pBot->console_nr == 0) {
@@ -827,10 +828,9 @@ void UTIL_BotRadioMessage(cBot* pBot, int radio, char* arg1, char* arg2) {
 // UTIL_getGrenadeType function // - Stefan
 //////////////////////////////////
 int UTIL_GetGrenadeType(edict_t* pEntity) {
-	const int length = 32;
+	constexpr int length = 32;
 
-	char model_name[length];
-	std::memset(model_name, 0, sizeof(model_name));
+	char model_name[length] = {};
 
 	std::strncpy(model_name, STRING(pEntity->v.model), length - 1);
 	model_name[length - 1] = 0;      // Make sure it is NULL terminated
@@ -840,11 +840,11 @@ int UTIL_GetGrenadeType(edict_t* pEntity) {
 	if (std::strcmp(model_name, "models/w_smokegrenade.mdl") == 0) return 3;       // SmokeGrenade
 	if (std::strcmp(model_name, "models/w_c4.mdl") == 0) return 4;                 // C4 Explosive
 
-	char msg[512];
-	std::memset(msg, 0, sizeof(msg));
-
 	// when an empty string, let us know we missed something
 	if (model_name[0] == '\0') {
+
+		char msg[512] = {};
+
 		snprintf(msg, sizeof(msg), "UTIL_GetGrenadeType unknown grenade model: %s\n", model_name);
 	}
 
@@ -966,8 +966,7 @@ void UTIL_SayTextBot(const char* pText, cBot* pBot) {
 
 	// pass through on ChatEngine (not always)
 	if (RANDOM_LONG(0, 100) < 90) {
-		char chSentence[80];
-		std::memset(chSentence, 0, sizeof(chSentence));
+		char chSentence[80] = {};
 
 		// copy pText to chSentence
 		std::strcpy(chSentence, pText);

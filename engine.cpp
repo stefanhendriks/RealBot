@@ -68,14 +68,15 @@ int botMsgIndex;
 
 void pfnChangeLevel(const char *s1, const char *s2) {
     // kick any bot off of the server after time/frag limit...
-    for (int index = 0; index < 32; index++) {
-        if (bots[index].bIsUsed)  // is this slot used?
+    for (cBot& bot : bots)
+    {
+        if (bot.bIsUsed)  // is this slot used?
         {
             char cmd[40];
 
-            std::sprintf(cmd, "kick \"%s\"\n", bots[index].name);
+            snprintf(cmd, sizeof(cmd), "kick \"%s\"\n", bot.name);
 
-            bots[index].respawn_state = RESPAWN_NEED_TO_RESPAWN;
+            bot.respawn_state = RESPAWN_NEED_TO_RESPAWN;
 
             SERVER_COMMAND(cmd);   // kick the bot using (kick "name")
         }
@@ -121,7 +122,7 @@ void pfnRemoveEntity(edict_t *e) {
 
     if (Game.bEngineDebug) {
         char msg[256];
-        std::sprintf(msg, "ENGINE: pfnRemoveEntity() - model -> '%s'\n",
+        snprintf(msg, sizeof(msg), "ENGINE: pfnRemoveEntity() - model -> '%s'\n",
                 STRING(e->v.model));
         rblog(msg);
     }
@@ -145,7 +146,7 @@ pfnMessageBegin(int msg_dest, int msg_type, const float *pOrigin, edict_t *edict
 
     if (Game.bEngineDebug) {
         char dmsg[256];
-        std::sprintf(dmsg, "ENGINE: pfnMessageBegin(), dest=%d, msg_type=%d\n", msg_dest, msg_type);
+        snprintf(dmsg, sizeof(dmsg), "ENGINE: pfnMessageBegin(), dest=%d, msg_type=%d\n", msg_dest, msg_type);
         rblog(dmsg);
     }
 
@@ -294,7 +295,7 @@ void pfnWriteByte(int iValue) {
 
     if (Game.bEngineDebug) {
         char msg[256];
-        std::sprintf(msg, "ENGINE: pfnWriteByte() - '%d'\n", iValue);
+        snprintf(msg, sizeof(msg), "ENGINE: pfnWriteByte() - '%d'\n", iValue);
         rblog(msg);
     }
 
@@ -310,7 +311,7 @@ void pfnWriteChar(int iValue) {
 
     if (Game.bEngineDebug) {
         char msg[256];
-        std::sprintf(msg, "ENGINE: pfnWriteChar() - '%d'\n", iValue);
+        snprintf(msg, sizeof(msg), "ENGINE: pfnWriteChar() - '%d'\n", iValue);
         rblog(msg);
     }
     RETURN_META(MRES_IGNORED);
@@ -325,7 +326,7 @@ void pfnWriteShort(int iValue) {
 
     if (Game.bEngineDebug) {
         char msg[256];
-        std::sprintf(msg, "ENGINE: pfnWriteShort() - '%d'\n", iValue);
+        snprintf(msg, sizeof(msg), "ENGINE: pfnWriteShort() - '%d'\n", iValue);
         rblog(msg);
     }
 
@@ -341,7 +342,7 @@ void pfnWriteLong(int iValue) {
 
     if (Game.bEngineDebug) {
         char msg[256];
-        std::sprintf(msg, "ENGINE: pfnWriteLong() - '%d'\n", iValue);
+        snprintf(msg, sizeof(msg), "ENGINE: pfnWriteLong() - '%d'\n", iValue);
         rblog(msg);
     }
 
@@ -358,7 +359,7 @@ void pfnWriteAngle(float flValue) {
 
     if (Game.bEngineDebug) {
         char msg[256];
-        std::sprintf(msg, "ENGINE: pfnWriteAngle() - '%f'\n", flValue);
+        snprintf(msg, sizeof(msg), "ENGINE: pfnWriteAngle() - '%f'\n", flValue);
         rblog(msg);
     }
 
@@ -375,7 +376,7 @@ void pfnWriteCoord(float flValue) {
 
     if (Game.bEngineDebug) {
         char msg[256];
-        std::sprintf(msg, "ENGINE: pfnWriteCoord() - '%f'\n", flValue);
+        snprintf(msg, sizeof(msg), "ENGINE: pfnWriteCoord() - '%f'\n", flValue);
         rblog(msg);
     }
 
@@ -386,7 +387,7 @@ void pfnWriteCoord(float flValue) {
 void pfnWriteString(const char *sz) {
     if (Game.bEngineDebug) {
         char msg[256];
-        std::sprintf(msg, "ENGINE: pfnWriteByte() - '%s'\n", sz);
+        snprintf(msg, sizeof(msg), "ENGINE: pfnWriteByte() - '%s'\n", sz);
         rblog(msg);
     }
 

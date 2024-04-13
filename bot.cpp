@@ -458,16 +458,16 @@ void cBot::NewRound() {
 			// we should say something now?
 			int iMax = -1;
 
-			for (int tc = 0; tc < 50; tc++) {
-				if (ChatEngine.ReplyBlock[98].sentence[tc][0] != '\0')
+			for (const char (&tc)[128] : ChatEngine.ReplyBlock[98].sentence)
+			{
+				if (tc[0] != '\0')
 					iMax++;
 			}
 
 			const int the_c = RANDOM_LONG(0, iMax);
 
 			if (the_c > -1 && iMax > -1) {
-				char chSentence[80];
-				std::memset(chSentence, 0, sizeof(chSentence));
+				char chSentence[80] = {};
 				snprintf(chSentence, sizeof(chSentence), "%s ", ChatEngine.ReplyBlock[98].sentence[the_c]);
 				PrepareChat(chSentence);
 			}
@@ -499,7 +499,7 @@ float cBot::ReactionTime(int iSkill) {
 	const float time = RANDOM_FLOAT(fpMinReactTime, fpMaxReactTime);
 	if (Game.messageVerbosity > 1) {
 		char msg[255];
-		std::sprintf(msg, "minReactTime %f, maxReactTime %f, skill %d, results into %f", fpMinReactTime, fpMaxReactTime, iSkill, time);
+		snprintf(msg, sizeof(msg), "minReactTime %f, maxReactTime %f, skill %d, results into %f", fpMinReactTime, fpMaxReactTime, iSkill, time);
 		rprint_trace("ReactionTime()", msg);
 	}
 	return time;
@@ -882,7 +882,7 @@ void cBot::PickBestWeapon() {
 	// Distance to enemy
 	const float fDistance = func_distance(pEdict->v.origin, lastSeenEnemyVector);
 
-	const float knifeDistance = 300.0f;
+	constexpr float knifeDistance = 300.0f;
 
 	// ----------------------------
 	// In this function all we do is decide what weapon to pick
@@ -1169,9 +1169,9 @@ void cBot::Combat() {
 				const int b = RANDOM_LONG(30, 155);
 				char msg[128];
 				if (Game.iDeathsBroadcasting == BROADCAST_DEATHS_FULL) {
-					std::sprintf(msg, "A RealBot has killed you!\n\nName:%s\nSkill:%d\n", name, bot_skill);
+					snprintf(msg, sizeof(msg), "A RealBot has killed you!\n\nName:%s\nSkill:%d\n", name, bot_skill);
 				} else {
-					std::sprintf(msg, "A RealBot named %s has killed you!", name);
+					snprintf(msg, sizeof(msg), "A RealBot named %s has killed you!", name);
 				}
 
 				HUD_DrawString(r, g, b, msg, pEnemyEdict);
@@ -1827,7 +1827,7 @@ bool cBot::Defuse() {
 	// We can do 2 things now
 	// - If we are not close, we check if we can walk to it, and if so we face to the c4
 	// - If we are close, we face it and (begin) defuse the bomb.
-	const int distanceForC4ToBeInReach = 70;
+	constexpr int distanceForC4ToBeInReach = 70;
 	if (distance < distanceForC4ToBeInReach) {
 		vHead = vC4;
 		vBody = vC4;
@@ -2123,7 +2123,7 @@ void cBot::CheckAround() {
 	const Vector v_source = pEdict->v.origin + Vector(0, 0, ORIGIN_HEIGHT);
 
 	// Go forward first
-	const float distance = 90.0f;
+	constexpr float distance = 90.0f;
 	const Vector v_forward = v_source + gpGlobals->v_forward * distance;
 
 	// now really go left/right
@@ -2155,7 +2155,7 @@ void cBot::CheckAround() {
 	const bool bHitForwardRight = tr.flFraction < 1.0f;
 	
 	char msg[255];
-	std::sprintf(msg, "HIT results: forward: %d, left: %d, right: %d, forward left: %d, forward right: %d", bHitForward, bHitLeft, bHitRight, bHitForwardLeft, bHitForwardRight);
+	snprintf(msg, sizeof(msg), "HIT results: forward: %d, left: %d, right: %d, forward left: %d, forward right: %d", bHitForward, bHitLeft, bHitRight, bHitForwardLeft, bHitForwardRight);
 	rprint_trace("CheckAround", msg);
 
 	// Set 'act' properties
@@ -2305,9 +2305,8 @@ bool cBot::hasEnemy(edict_t * pEdict) const
 // Returns true if bot has a path to follow
 bool cBot::shouldBeWandering() {
 	if (this->fWanderTime > gpGlobals->time) {
-		char msg[255];
-		std::memset(msg, 0, sizeof(msg));
-		std::sprintf(msg, "Wander time is %f , globals time is %f, so should still wander", this->fWanderTime, gpGlobals->time);
+		char msg[255] = {};
+		snprintf(msg, sizeof(msg), "Wander time is %f , globals time is %f, so should still wander", this->fWanderTime, gpGlobals->time);
 		rprint(msg);
 		return true;
 	}
@@ -2323,7 +2322,7 @@ void cBot::setMoveSpeed(float value) {
 
 void cBot::setStrafeSpeed(float value, float time) {
 	char msg[255];
-	std::sprintf(msg, "%f for %f seconds.", value, time);
+	snprintf(msg, sizeof(msg), "%f for %f seconds.", value, time);
 	rprint_trace("setStrafeSpeed", msg);
 	// if (f_strafe_time > gpGlobals->time) {
 	//
@@ -2347,9 +2346,8 @@ void cBot::startWandering(float time)
 {
 	this->fWanderTime = gpGlobals->time + time;
 	setMoveSpeed(f_max_speed);
-	char msg[255];
-	std::memset(msg, 0, sizeof(msg));
-	std::sprintf(msg, "Start wandering for %f seconds", time);
+	char msg[255] = {};
+	snprintf(msg, sizeof(msg), "Start wandering for %f seconds", time);
 	rprint("startWandering", msg);
 }
 
@@ -2404,18 +2402,17 @@ void cBot::setGoalNode(int nodeIndex, int iGoalIndex) {
 	this->goalIndex = iGoalIndex;
 
 	tGoal *goalPtr = getGoalData();
-	char msg[255];
-	std::memset(msg, 0, sizeof(msg));
+	char msg[255] = {};
 
 	if (goalPtr != nullptr) {
-		std::sprintf(msg, "Setting iGoalNode to [%d] and goalIndex [%d] - GOAL: type [%s], checked [%d]",
+		snprintf(msg, sizeof(msg), "Setting iGoalNode to [%d] and goalIndex [%d] - GOAL: type [%s], checked [%d]",
 				nodeIndex,
 				goalIndex,
 				goalPtr->name,
 				goalPtr->iChecked
 		);
 	} else {
-		std::sprintf(msg, "Setting iGoalNode to [%d] and goalIndex [%d] - could not retrieve goal data.", nodeIndex, goalIndex);
+		snprintf(msg, sizeof(msg), "Setting iGoalNode to [%d] and goalIndex [%d] - could not retrieve goal data.", nodeIndex, goalIndex);
 	}
 	rprint("setGoalNode()", msg);
 }
@@ -3092,7 +3089,7 @@ edict_t * cBot::findHostageToRescue() {
 		if (getDistanceTo(pent->v.origin) > NODE_ZONE * 2.5f) continue;
 
 		char msg[255];
-		std::sprintf(msg, "Found hostage to rescue at %f,%f,%f", pent->v.origin.x, pent->v.origin.y, pent->v.origin.z);
+		snprintf(msg, sizeof(msg), "Found hostage to rescue at %f,%f,%f", pent->v.origin.x, pent->v.origin.y, pent->v.origin.z);
 		this->rprint_trace("findHostageToRescue()", msg);
 		return pent;
 	}
@@ -3226,11 +3223,11 @@ void cBot::Think() {
 				const int b = RANDOM_LONG(30, 155);
 				char msg[128];
 				if (Game.iDeathsBroadcasting == BROADCAST_DEATHS_FULL)
-					std::sprintf(msg,
+					snprintf(msg, sizeof(msg),
 							"You have killed a RealBot!\n\nName:%s\nSkill:%d\n",
 							name, bot_skill);
 				else
-					std::sprintf(msg, "You have killed a RealBot named %s!",
+					snprintf(msg, sizeof(msg), "You have killed a RealBot named %s!",
 							name);
 
 				HUD_DrawString(r, g, b, msg, killer_edict);
@@ -3261,17 +3258,17 @@ void cBot::Think() {
 						// we should say something now?
 						int iMax = -1;
 
-						for (int tc = 0; tc < 50; tc++) {
-							if (ChatEngine.ReplyBlock[99].sentence[tc][0] != '\0') iMax++;
+						for (char (&tc)[128] : ChatEngine.ReplyBlock[99].sentence)
+						{
+							if (tc[0] != '\0') iMax++;
 						}
 
 						const int the_c = RANDOM_LONG(0, iMax);
 
 						if (the_c > -1 && iMax > -1) {
-							char chSentence[80];
-							std::memset(chSentence, 0, sizeof(chSentence));
-							std::sprintf(chSentence, "%s ",
-									ChatEngine.ReplyBlock[99].sentence[the_c]);
+							char chSentence[80] = {};
+							snprintf(chSentence, sizeof(chSentence),
+								"%s ", ChatEngine.ReplyBlock[99].sentence[the_c]);
 							//strcpy(chSentence, ChatEngine.ReplyBlock[99].sentence[the_c]);
 							PrepareChat(chSentence);
 						}
@@ -3307,7 +3304,7 @@ void cBot::Think() {
 		rprint("Played enough rounds");
 		bIsUsed = false;          // no longer used
 		char cmd[80];
-		std::sprintf(cmd, "kick \"%s\"\n", name);
+		snprintf(cmd, sizeof(cmd), "kick \"%s\"\n", name);
 		SERVER_COMMAND(cmd);      // kick the bot using (kick "name")
 		return;
 	}
@@ -4073,14 +4070,14 @@ void BotThink(cBot *pBot) {
 	const float msecval = (gpGlobals->time - pBot->fLastRunPlayerMoveTime) * 1000.0f;
 	pBot->fLastRunPlayerMoveTime = gpGlobals->time;
 
-	const double upMove = 0.0;
+	constexpr double upMove = 0.0;
 	char msg[255];
-	std::sprintf(msg, "moveSpeed %f, strafeSpeed %f, msecVal %f", pBot->f_move_speed, pBot->f_strafe_speed, msecval);
+	snprintf(msg, sizeof(msg), "moveSpeed %f, strafeSpeed %f, msecVal %f", pBot->f_move_speed, pBot->f_strafe_speed, msecval);
 	pBot->rprint_trace("BotThink/pfnRunPlayerMove", msg);
 	g_engfuncs.pfnRunPlayerMove(pBot->pEdict, pBot->vecMoveAngles, pBot->f_move_speed, pBot->f_strafe_speed,
 								upMove, pBot->pEdict->v.button, 0, msecval);
 
-	const float fUpdateInterval = 1.0f / 60.0f; // update at 60 fps
+	constexpr float fUpdateInterval = 1.0f / 60.0f; // update at 60 fps
 	pBot->fUpdateTime = gpGlobals->time + fUpdateInterval;
 }
 
@@ -4264,7 +4261,7 @@ void cBot::lookAtNode(int nodeIndex) {
 void cBot::setTimeToMoveToNode(float timeInSeconds) {
 	char msg[255];
 	const float endTime = gpGlobals->time + timeInSeconds;
-	std::sprintf(msg, "Set to %f so results into end time of %f", timeInSeconds, endTime);
+	snprintf(msg, sizeof(msg), "Set to %f so results into end time of %f", timeInSeconds, endTime);
 	rprint_trace("setTimeToMoveToNode", msg);
 
 	this->nodeTimeIncreasedAmount = 0;
@@ -4280,10 +4277,9 @@ void cBot::increaseTimeToMoveToNode(float timeInSeconds) {
 		nodeTimeIncreasedAmount++;
 		this->fMoveToNodeTime += timeInSeconds;
 		const float timeToMoveToNodeRemaining = getMoveToNodeTimeRemaining();
-		char msg[255];
-		std::memset(msg, 0, sizeof(msg));
-		std::sprintf(msg, "increaseTimeToMoveToNode with %f for the %d time, making time to move to node remaining %f.",
-				timeInSeconds, nodeTimeIncreasedAmount, timeToMoveToNodeRemaining);
+		char msg[255] = {};
+		snprintf(msg, sizeof(msg), "increaseTimeToMoveToNode with %f for the %d time, making time to move to node remaining %f.",
+		         timeInSeconds, nodeTimeIncreasedAmount, timeToMoveToNodeRemaining);
 		rprint_trace("increaseTimeToMoveToNode", msg);
 	} else {
 		rprint_trace("increaseTimeToMoveToNode", "Refused to increase time");
@@ -4354,9 +4350,8 @@ bool cBot::createPath(int destinationNode, int flags) {
 
 	forgetPath();
 
-	char msg[255];
-	std::memset(msg, 0, sizeof(msg));
-	std::sprintf(msg, "Creating path from currentNode [%d] to destination node [%d]", currentNode, destinationNode);
+	char msg[255] = {};
+	snprintf(msg, sizeof(msg), "Creating path from currentNode [%d] to destination node [%d]", currentNode, destinationNode);
 	rprint("createPath()", msg);
 
 	return NodeMachine.createPath(currentNode, destinationNode, iBotIndex, this, flags);

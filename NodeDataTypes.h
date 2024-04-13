@@ -121,7 +121,7 @@
 #define CLOSED            2   // closed, do nothing with it
 #define AVAILABLE         3   // available, may open
 
-const unsigned long g_iMaxVisibilityByte = MAX_NODES * MAX_NODES / 8;
+constexpr unsigned long g_iMaxVisibilityByte = MAX_NODES * MAX_NODES / 8;
 
 // doors (doors.cpp) HLSDK
 #define SF_DOOR_ROTATE_Y            0

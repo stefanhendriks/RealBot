@@ -1012,7 +1012,7 @@ void StartFrame() {
     RETURN_META(MRES_IGNORED);
 }
 
-void FakeClientCommand(edict_t *pBot, char *arg1, char *arg2, char *arg3) {
+void FakeClientCommand(edict_t* pBot, char* arg1, char* arg2, char* arg3) {
     int length;
 
     std::memset(g_argv, 0, sizeof(g_argv));
@@ -1023,15 +1023,15 @@ void FakeClientCommand(edict_t *pBot, char *arg1, char *arg2, char *arg3) {
         return;
 
     if (arg2 == nullptr || *arg2 == 0) {
-        length = snprintf(&g_argv[0], sizeof(g_argv[0]), "%s", arg1);
+        length = snprintf(&g_argv[0], sizeof(g_argv), "%s", arg1);
         fake_arg_count = 1;
     }
     else if (arg3 == nullptr || *arg3 == 0) {
-        length = snprintf(&g_argv[0], sizeof(g_argv[0]), "%s %s", arg1, arg2);
+        length = snprintf(&g_argv[0], sizeof(g_argv), "%s %s", arg1, arg2);
         fake_arg_count = 2;
     }
     else {
-        length = snprintf(&g_argv[0], sizeof(g_argv[0]), "%s %s %s", arg1, arg2, arg3);
+        length = snprintf(&g_argv[0], sizeof(g_argv), "%s %s %s", arg1, arg2, arg3);
         fake_arg_count = 3;
     }
 

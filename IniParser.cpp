@@ -32,6 +32,7 @@
 	* COPYRIGHTED BY STEFAN HENDRIKS (C) 2003-2004
 	**/
 
+#include <algorithm>
 #include <cstring>
 #include <extdll.h>
 #include <dllapi.h>
@@ -577,8 +578,7 @@ void INI_PARSE_CHATFILE() {
 
 				if (section == INI_BLOCK) {
 					iBlockId++;
-					if (iBlockId > 97)
-						iBlockId = 97;
+					iBlockId = std::min(iBlockId, 97);
 					section = INI_NONE;
 					iBlockWord = -1;
 					iBlockSentence = -1;
@@ -609,8 +609,7 @@ void INI_PARSE_CHATFILE() {
 				// We load in words
 				if (wordtype == WORD_WORD) {
 					iBlockWord++;
-					if (iBlockWord > 9)
-						iBlockWord = 9;
+					iBlockWord = std::min(iBlockWord, 9);
 
 					// write the word in the block
 					char chWord[25] = {};
@@ -639,8 +638,7 @@ void INI_PARSE_CHATFILE() {
 
 				if (wordtype == WORD_SENTENCE) {
 					iBlockSentence++;
-					if (iBlockSentence > 49)
-						iBlockSentence = 49;
+					iBlockSentence = std::min(iBlockSentence, 49);
 
 					// write the word in the block
 					char chSentence[80] = {};
@@ -1059,11 +1057,12 @@ void INI_PARSE_BUYTABLE() {
 	UTIL_BuildFileNameRB(dirname, filename);
 
 	// clear out weapon table completely
-	for (int cl = 0; cl < 32; cl++) {
-		weapons_table[cl].iId = -1;
-		weapons_table[cl].price = -1;
-		weapons_table[cl].priority = -1;
-		weapons_table[cl].iIdIndex = -1;
+	for (weapon_price_table& cl : weapons_table)
+	{
+		cl.iId = -1;
+		cl.price = -1;
+		cl.priority = -1;
+		cl.iIdIndex = -1;
 	}
 
 	if ((stream = std::fopen(filename, "r+t")) != nullptr) {

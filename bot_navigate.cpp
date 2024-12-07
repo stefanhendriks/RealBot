@@ -43,7 +43,7 @@ extern int mod_id;
 
 extern edict_t *pHostEdict;
 
-enum
+enum : std::uint8_t
 {
 	SCAN_RADIUS = 60        // Radius to scan to prevent blocking with players
 };

@@ -72,6 +72,7 @@ bool CBaseBot::IsShootableThruObstacle(Vector vecDest)
 
 */
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <extdll.h>
@@ -732,9 +733,7 @@ void cBot::FightEnemy() {
 	if (!isBlindedByFlashbang() && isSeeingEnemy()) {
 
 		// GET OUT OF CAMP MODE
-		if (f_camp_time > gpGlobals->time) {
-			f_camp_time = gpGlobals->time;
-		}
+		f_camp_time = std::min(f_camp_time, gpGlobals->time);
 
 		// Next time our enemy gets out of sight, it will be the 'first' time
 		// of all 'frame times'.
@@ -1040,15 +1039,12 @@ void cBot::FireWeapon() {
 					 || CarryWeapon(CS_WEAPON_SG552) || CarryWeapon(CS_WEAPON_AUG))
 						&& bot_skill < 3) {
 					float f_burst = (2048 / fDistance) + 0.1f;
-					if (f_burst < 0.1f)
-						f_burst = 0.1f;
-					if (f_burst > 0.4f)
-						f_burst = 0.4f;
+					f_burst = std::max(f_burst, 0.1f);
+					f_burst = std::min(f_burst, 0.4f);
 
 					// CS 1.6 less burst
 					if (counterstrike == 1)
-						if (f_burst > 0.3f)
-							f_burst = 0.3f;
+						f_burst = std::min(f_burst, 0.3f);
 
 					f_prim_weapon = gpGlobals->time + f_burst;
 
@@ -1060,13 +1056,11 @@ void cBot::FireWeapon() {
 						f_burst = (fDistance - 300) / 550;
 						if (f_burst < 0.1f)
 							f_burst = 0.0f;
-						if (f_burst > 0.7f)
-							f_burst = 0.7f;
+						f_burst = std::min(f_burst, 0.7f);
 
 						// CS 1.6 less burst
 						if (counterstrike == 1)
-							if (f_burst > 0.2f)
-								f_burst = 0.2f;
+							f_burst = std::min(f_burst, 0.2f);
 						if (f_prim_weapon < gpGlobals->time)
 							f_prim_weapon = gpGlobals->time + f_burst;
 					}
@@ -1728,8 +1722,7 @@ int cBot::ReturnTurnedAngle(float speed, float current, float ideal) {
 		return static_cast<int>(current);     // return number of degrees turned
 
 	// check if difference is less than the max degrees per turn
-	if (diff < speed)
-		speed = diff;             // just need to turn a little bit (less than max)
+	speed = std::min(diff, speed); // just need to turn a little bit (less than max)
 
 	// here we have four cases, both angle positive, one positive and
 	// the other negative, one negative and the other positive, or
@@ -2297,7 +2290,7 @@ bool cBot::hasEnemy() const
  * @param pEdict
  * @return
  */
-bool cBot::hasEnemy(edict_t * pEdict) const
+bool cBot::hasEnemy(const edict_t * pEdict) const
 {
 	return this->pEnemyEdict == pEdict;
 }
@@ -3210,8 +3203,7 @@ void cBot::Think() {
 		if (botPointerOfKiller == nullptr) {
 			if (autoskill) {
 				bot_skill--;
-				if (bot_skill < 0)
-					bot_skill = 0;
+				bot_skill = std::max(bot_skill, 0);
 			}
 
 			if (Game.iKillsBroadcasting != BROADCAST_KILLS_NONE
@@ -3258,7 +3250,7 @@ void cBot::Think() {
 						// we should say something now?
 						int iMax = -1;
 
-						for (char (&tc)[128] : ChatEngine.ReplyBlock[99].sentence)
+						for (const char (&tc)[128] : ChatEngine.ReplyBlock[99].sentence)
 						{
 							if (tc[0] != '\0') iMax++;
 						}

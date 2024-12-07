@@ -27,6 +27,7 @@
   *
   **/
 
+#include <algorithm>
 #include <cstring>
 #include <extdll.h>
 #include <dllapi.h>
@@ -160,7 +161,7 @@ char *cGame::RandomSentence() {
     return cSpeechSentences[RANDOM_LONG(0, 15)];
 }
 
-void cGame::DetermineMapGoal() const
+void cGame::DetermineMapGoal()
 {
     rblog("DetermineMapGoal called\n");
     edict_t *pEnt = nullptr;
@@ -253,10 +254,8 @@ void cGame::SetPlayingRounds(int iMin, int iMax) {
         iMaxPlayRounds = iMax;
 
     // Boundries
-    if (iMinPlayRounds < 1)
-        iMinPlayRounds = 1;
-    if (iMaxPlayRounds < 2)
-        iMaxPlayRounds = 2;
+    iMinPlayRounds = std::max(iMinPlayRounds, 1);
+    iMaxPlayRounds = std::max(iMaxPlayRounds, 2);
 
     // Make sure MAX never is lower then MIN
     if (iMinPlayRounds > iMaxPlayRounds)

@@ -27,6 +27,7 @@
   *
   **/
 
+#include <algorithm>
 #include <cstring>
 #include <extdll.h>
 #include <dllapi.h>
@@ -868,8 +869,7 @@ void StartFrame() {
     ChatEngine.think();
 
     // Keep number of bots up-to-date.
-    if (count > num_bots)
-        num_bots = count;
+    num_bots = std::max(count, num_bots);
 
     // handle radio commands
     if (radio_message) {
@@ -1269,14 +1269,12 @@ void RealBot_ServerCommand() {
     } else if (FStrEq(pcmd, "chatrate")) {
         if (arg1 != nullptr && *arg1 != 0) {
             Game.iMaxSentences = std::atoi(arg1);
-            if (Game.iMaxSentences < -1)
-                Game.iMaxSentences = -1;
+            Game.iMaxSentences = std::max(Game.iMaxSentences, -1);
 
-            if (Game.iMaxSentences > 10)
-                Game.iMaxSentences = 10;
+            Game.iMaxSentences = std::min(Game.iMaxSentences, 10);
 
             snprintf(cMessage, sizeof(cMessage), "REALBOT: Chat-rate set to %d",
-                    Game.iMaxSentences);
+                     Game.iMaxSentences);
         } else {
             snprintf(cMessage, sizeof(cMessage),
                     "REALBOT: No argument given, current chat-rate is %d",
@@ -1408,9 +1406,8 @@ void RealBot_ServerCommand() {
             // switch on/off internet mode
             int temp = std::atoi(arg1);
             if (temp > -1) {
-                if (temp < 1)
-                    temp = 1;
-                internet_min_interval = temp;
+	            temp = std::max(temp, 1);
+	            internet_min_interval = temp;
             }
         }
         // 2nd argument
@@ -1419,9 +1416,8 @@ void RealBot_ServerCommand() {
             // switch on/off internet mode
             int temp = std::atoi(arg2);
             if (temp > -1) {
-                if (temp < internet_min_interval)
-                    temp = internet_min_interval;
-                internet_max_interval = temp;
+	            temp = std::max(temp, internet_min_interval);
+	            internet_max_interval = temp;
             }
         }
         // Create message
@@ -1436,10 +1432,8 @@ void RealBot_ServerCommand() {
             // get amount
             const int temp = std::atoi(arg1);
             kick_amount_bots = temp;
-            if (kick_amount_bots > 31)
-                kick_amount_bots = 31;
-            if (kick_amount_bots < 0)
-                kick_amount_bots = 0;
+            kick_amount_bots = std::min(kick_amount_bots, 31);
+            kick_amount_bots = std::max(kick_amount_bots, 0);
         }
         // ARG 2 - Team
         if (arg2 != nullptr && *arg2 != 0) {
@@ -1507,16 +1501,11 @@ void RealBot_ServerCommand() {
         } else {
             if (s2 < -1)
                 s2 = Game.iRandomMaxSkill;
-            if (s1 > 10)
-                s1 = 10;
-            if (s1 < 0)
-                s1 = 0;
-            if (s2 > 10)
-                s2 = 10;
-            if (s2 < 0)
-                s2 = 0;
-            if (s2 < s1)           // be sure s1 is lower then s2 or atleast the same
-                s2 = s1;
+            s1 = std::min(s1, 10);
+            s1 = std::max(s1, 0);
+            s2 = std::min(s2, 10);
+            s2 = std::max(s2, 0);
+            s2 = std::max(s2, s1);
             Game.iRandomMinSkill = s1;
             Game.iRandomMaxSkill = s2;
             snprintf(cMessage, sizeof(cMessage),
@@ -1578,10 +1567,8 @@ void RealBot_ServerCommand() {
         if (FStrEq(arg1, "players")) {
             if (arg2 != nullptr && *arg2 != 0) {
                 int temp = std::atoi(arg2);      // argument
-                if (temp > 31)
-                    temp = 31;
-                if (temp < -1)
-                    temp = -1;
+                temp = std::min(temp, 31);
+                temp = std::max(temp, -1);
 
                 min_players = temp;
                 f_minplayers_think = gpGlobals->time;
@@ -1597,10 +1584,8 @@ void RealBot_ServerCommand() {
                 // How do we broadcast version message?
                 if (arg3 != nullptr && *arg3 != 0) {
                     int temp = std::atoi(arg3);   // argument
-                    if (temp <= 0)
-                        temp = 0;
-                    if (temp >= 1)
-                        temp = 1;
+                    temp = std::max(temp, 0);
+                    temp = std::min(temp, 1);
                     Game.iVersionBroadcasting = temp;
                     if (Game.iVersionBroadcasting == BROADCAST_ROUND)
                         snprintf(cMessage, sizeof(cMessage),
@@ -1627,10 +1612,8 @@ void RealBot_ServerCommand() {
                 // How do we broadcast kills by bots?
                 if (arg3 != nullptr && *arg3 != 0) {
                     int temp = std::atoi(arg3);   // argument
-                    if (temp <= 0)
-                        temp = 0;
-                    if (temp >= 2)
-                        temp = 2;
+                    temp = std::max(temp, 0);
+                    temp = std::min(temp, 2);
                     if (temp == 0)
                         Game.iKillsBroadcasting = BROADCAST_KILLS_FULL;
                     if (temp == 1)
@@ -1662,10 +1645,8 @@ void RealBot_ServerCommand() {
                 // How do we broadcast deaths by bots.
                 if (arg3 != nullptr && *arg3 != 0) {
                     int temp = std::atoi(arg3);   // argument
-                    if (temp <= 0)
-                        temp = 0;
-                    if (temp >= 2)
-                        temp = 2;
+                    temp = std::max(temp, 0);
+                    temp = std::min(temp, 2);
                     if (temp == 0)
                         Game.iDeathsBroadcasting = BROADCAST_DEATHS_FULL;
                     if (temp == 1)

@@ -27,6 +27,7 @@
   *
   **/
 
+#include <algorithm>
 #include <cstring>
 #include <extdll.h>
 #include <dllapi.h>
@@ -457,8 +458,7 @@ void BotConsole(cBot *pBot) {
     // Here the bot will excecute the console commands if the console counter has been set/changed
     if (pBot->console_nr != 0 && pBot->f_console_timer < gpGlobals->time) {
         // safety net
-        if (pBot->console_nr < 0)
-            pBot->console_nr = 0;  // Set it to 0
+        pBot->console_nr = std::max(pBot->console_nr, 0); // Set it to 0
 
         // issue command (buy/radio)
         if (pBot->console_nr == 1)

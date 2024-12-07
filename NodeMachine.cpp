@@ -32,6 +32,7 @@
   * COPYRIGHTED BY STEFAN HENDRIKS (C) 2003-2004
   **/
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <extdll.h>
@@ -198,9 +199,9 @@ void cNodeMachine::init() {
 
     // Init Meredians
     for (tMeredian (&Meredian)[64] : Meredians)
-	    for (int iMy = 0; iMy < MAX_MEREDIANS; iMy++)
-            for (int iNode = 0; iNode < MAX_NODES_IN_MEREDIANS; iNode++)
-	            Meredian[iMy].iNodes[iNode] = -1;
+	    for (tMeredian& iMy : Meredian)
+		    for (int& iNode : iMy.iNodes)
+			    iNode = -1;
 
     rblog("cNodeMachine::init() - END\n");
 }
@@ -924,8 +925,7 @@ int cNodeMachine::add2(const Vector& vOrigin, int iType, edict_t *pEntity) {
     }
 
     Nodes[newNodeIndex].origin = vOrigin;
-    if (newNodeIndex > iMaxUsedNodes)
-        iMaxUsedNodes = newNodeIndex;
+    iMaxUsedNodes = std::max(newNodeIndex, iMaxUsedNodes);
 
     // Set different flags about the node
     Nodes[newNodeIndex].iNodeBits = iType;  // EVY's extension
@@ -1251,8 +1251,7 @@ int cNodeMachine::addNode(const Vector& vOrigin, edict_t *pEntity) {
 
     }
 
-    if (currentIndex > iMaxUsedNodes)
-        iMaxUsedNodes = currentIndex;
+    iMaxUsedNodes = std::max(currentIndex, iMaxUsedNodes);
 
     //UTIL_ClientPrintAll( HUD_PRINTNOTIFY, "NodeMachine: Succesfully added node\n");
     return currentIndex;
@@ -1504,12 +1503,13 @@ void cNodeMachine::experience_save() {
 
 	    //TODO: To resolve the overflow of the buffer issue [APG]RoboCop[CL]
         for (int i = 0; i < MAX_NODES; i++) {
-	        Node InfoNodes[MAX_NODES];
-	        std::fwrite(&InfoNodes[i].fDanger[0], sizeof(Vector), 1, rbl);
-            std::fwrite(&InfoNodes[i].fDanger[1], sizeof(Vector), 1, rbl);
+	        Node localInfoNodes[MAX_NODES];
+
+	        std::fwrite(&localInfoNodes[i].fDanger[0], sizeof(Vector), 1, rbl);
+            std::fwrite(&localInfoNodes[i].fDanger[1], sizeof(Vector), 1, rbl);
         	
-            std::fwrite(&InfoNodes[i].fContact[0], sizeof(Vector), 1, rbl);
-            std::fwrite(&InfoNodes[i].fContact[1], sizeof(Vector), 1, rbl);
+            std::fwrite(&localInfoNodes[i].fContact[0], sizeof(Vector), 1, rbl);
+            std::fwrite(&localInfoNodes[i].fContact[1], sizeof(Vector), 1, rbl);
         }
 
         if (iMaxUsedNodes > MAX_NODES)
@@ -1579,19 +1579,18 @@ void cNodeMachine::experience_load() {
             Vector fDanger[2];
             Vector fContact[2];
         };
-        Node InfoNodes[MAX_NODES];
+        Node localInfoNodes[MAX_NODES];
 
         if (iVersion == FILE_EXP_VER1) {
 
             //TODO: To resolve the overflow of the buffer issue [APG]RoboCop[CL]
             for (i = 0; i < MAX_NODES; i++) {
-                std::fread(&InfoNodes[i].fDanger[0], sizeof(Vector), 1, rbl);
-                std::fread(&InfoNodes[i].fDanger[1], sizeof(Vector), 1, rbl);
-            	
-                std::fread(&InfoNodes[i].fContact[0], sizeof(Vector), 1, rbl);
-                std::fread(&InfoNodes[i].fContact[1], sizeof(Vector), 1, rbl);
+                std::fread(&localInfoNodes[i].fDanger[0], sizeof(Vector), 1, rbl);
+                std::fread(&localInfoNodes[i].fDanger[1], sizeof(Vector), 1, rbl);
+                std::fread(&localInfoNodes[i].fContact[0], sizeof(Vector), 1, rbl);
+                std::fread(&localInfoNodes[i].fContact[1], sizeof(Vector), 1, rbl);
             }
-        	
+
             std::fread(&iMaxUsedNodes, sizeof(int), 1, rbl);
 
             // make sure we never exceed the limit
@@ -1603,18 +1602,17 @@ void cNodeMachine::experience_load() {
             // Read table from what we know
             std::fread(cVisTable, iSize, 1, rbl);
             std::fread(iVisChecked, sizeof(iVisChecked), 1, rbl);
-        } else if (iVersion == FILE_EXP_VER2) {
+        }
+        else if (iVersion == FILE_EXP_VER2) {
             //TODO: To resolve the overflow of the buffer issue [APG]RoboCop[CL]
             for (i = 0; i < MAX_NODES; i++) {
-                std::fread(&InfoNodes[i].fDanger[0], sizeof(Vector), 1, rbl);
-                std::fread(&InfoNodes[i].fDanger[1], sizeof(Vector), 1, rbl);
-            	
-                std::fread(&InfoNodes[i].fContact[0], sizeof(Vector), 1, rbl);
-                std::fread(&InfoNodes[i].fContact[1], sizeof(Vector), 1, rbl);
+                std::fread(&localInfoNodes[i].fDanger[0], sizeof(Vector), 1, rbl);
+                std::fread(&localInfoNodes[i].fDanger[1], sizeof(Vector), 1, rbl);
+                std::fread(&localInfoNodes[i].fContact[0], sizeof(Vector), 1, rbl);
+                std::fread(&localInfoNodes[i].fContact[1], sizeof(Vector), 1, rbl);
             }
 
             std::fread(&iMaxUsedNodes, sizeof(int), 1, rbl);
-
             // make sure we never exceed the limit
             if (iMaxUsedNodes > MAX_NODES)
                 iMaxUsedNodes = MAX_NODES;
@@ -1678,8 +1676,8 @@ void cNodeMachine::save() const
         for (const tNode& Node : Nodes)
         {
             std::fwrite(&Node.origin, sizeof(Vector), 1, rbl);
-            for (int n = 0; n < MAX_NEIGHBOURS; n++)
-                std::fwrite(&Node.iNeighbour[n], sizeof(int), 1, rbl);
+            for (const int& n : Node.iNeighbour)
+	            std::fwrite(&n, sizeof(int), 1, rbl);
 
             // save bit flags
             std::fwrite(&Node.iNodeBits, sizeof(int), 1, rbl);
@@ -2046,8 +2044,7 @@ bool cNodeMachine::hasGoalWithEdict(edict_t *pEdict) const
 void cNodeMachine::resetCheckedValuesForGoals() {
     for (tGoal& Goal : Goals)
     {
-        if (Goal.iChecked > 0)
-	        Goal.iChecked = 0;
+	    Goal.iChecked = std::min(Goal.iChecked, 0);
     }
 }
 
@@ -2226,8 +2223,7 @@ void cNodeMachine::scale_contact() {
         float fHighest = 0.0f;
         int i;                // <-- ADDED BY PMB ELSE LINUX COMPILER ISNT HAPPY
         for (i = 0; i < MAX_NODES; i++)
-            if (InfoNodes[i].fContact[iTeam] > fHighest)
-                fHighest = InfoNodes[i].fContact[iTeam];
+	        fHighest = std::max(InfoNodes[i].fContact[iTeam], fHighest);
 
         if (fHighest < 1.0f) {
             iTeam++;
@@ -2256,8 +2252,7 @@ void cNodeMachine::scale_danger() {
         float fHighest = 0.0f;
         int i;                // ADDED BY PMB FOR COMPILING UNDER LINUX
         for (i = 0; i < MAX_NODES; i++)
-            if (InfoNodes[i].fDanger[iTeam] > fHighest)
-                fHighest = InfoNodes[i].fDanger[iTeam];
+	        fHighest = std::max(InfoNodes[i].fDanger[iTeam], fHighest);
 
         if (fHighest < 0.8f) {
             iTeam++;
@@ -2501,7 +2496,7 @@ void cNodeMachine::openNeighbourNodes(int startNodeIndex, int nodeToOpenNeighbou
 
 	const tNode &node = Nodes[nodeToOpenNeighboursFrom]; // node evaluating neighbours
 
-    for (int neighbourNode : node.iNeighbour)
+    for (const int neighbourNode : node.iNeighbour)
     {
 	    if (neighbourNode < 0) continue; // skip invalid nodes
         if (Nodes[neighbourNode].origin == INVALID_VECTOR) continue; // skip nodes with invalid vector
@@ -4107,7 +4102,7 @@ void cNodeMachine::dump_path(int iBot, int CurrentPath) const
 // Graphs from PMB & Botman
 
 // width and height of the debug bitmap image
-enum
+enum : std::uint16_t
 {
 	DEBUG_BMP_WIDTH = 2048,
 	DEBUG_BMP_HEIGHT = 2048
@@ -4442,14 +4437,10 @@ void cNodeMachine::FindMinMax() const
     for (int i = 0;
          i < MAX_NODES && Nodes[i].origin != Vector(9999, 9999, 9999);
          i++) {
-        if (Nodes[i].origin.x > maxx)
-            maxx = Nodes[i].origin.x;
-        if (Nodes[i].origin.y > maxy)
-            maxy = Nodes[i].origin.y;
-        if (Nodes[i].origin.x < minx)
-            minx = Nodes[i].origin.x;
-        if (Nodes[i].origin.y < miny)
-            miny = Nodes[i].origin.y;
+	    maxx = std::max(Nodes[i].origin.x, maxx);
+	    maxy = std::max(Nodes[i].origin.y, maxy);
+	    minx = std::min(Nodes[i].origin.x, minx);
+	    miny = std::min(Nodes[i].origin.y, miny);
     }
 
     // Avoid having lines/points just on the bitmap border, add some more spaces

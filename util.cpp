@@ -42,6 +42,7 @@
   *
   **/
 
+#include <algorithm>
 #include <cstring>
 #include <extdll.h>
 #include <dllapi.h>
@@ -818,8 +819,7 @@ void UTIL_BotRadioMessage(cBot* pBot, int radio, const char* arg1, const char* a
 
 		// 02/07/04 - pointed out, eliminate any possible 'devide by zero'
 		int iExtra = 100 / (pBot->ipCreateRadio + 1);
-		if (iExtra > 30)
-			iExtra = 30;
+		iExtra = std::min(iExtra, 30);
 		pBot->fDoRadio = gpGlobals->time + static_cast<float>(iExtra);
 	}
 }
@@ -854,10 +854,9 @@ int UTIL_GetGrenadeType(edict_t* pEntity) {
 // 2 functions from podbot source
 unsigned short fixed_unsigned16(float value, float scale) {
 	int output = static_cast<int>(value * scale);
-	if (output < 0)
-		output = 0;
-	if (output > 0xFFFF)
-		output = 0xFFFF;
+
+	output = std::max(output, 0);
+	output = std::min(output, 0xFFFF);
 
 	return static_cast<unsigned short>(output);
 }
@@ -865,11 +864,8 @@ unsigned short fixed_unsigned16(float value, float scale) {
 short fixed_signed16(float value, float scale) {
 	int output = static_cast<int>(value * scale);
 
-	if (output > 32767)
-		output = 32767;
-
-	if (output < -32768)
-		output = -32768;
+	output = std::min(output, 32767);
+	output = std::max(output, -32768);
 
 	return static_cast<short>(output);
 }

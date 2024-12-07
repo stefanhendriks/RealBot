@@ -58,11 +58,11 @@ cChatEngine::init() {
     // clear all blocks
     for (tReplyBlock& iB : ReplyBlock)
     {
-        for (int iBs = 0; iBs < 50; iBs++)
-	        iB.sentence[iBs][0] = '\0';
+        for (char (&iBs)[128] : iB.sentence)
+	        iBs[0] = '\0';
 
-        for (int iBw = 0; iBw < 10; iBw++)
-	        iB.word[iBw][0] = '\0';
+        for (char (&iBw)[25] : iB.word)
+	        iBw[0] = '\0';
 
         iB.bUsed = false;
     }
@@ -172,7 +172,7 @@ void cChatEngine::think() {
             } else {
                 for (int iB = 0; iB < MAX_BLOCKS; iB++) {
                     if (ReplyBlock[iB].bUsed) {
-                        for (char (&iBw)[25] : ReplyBlock[iB].word)
+                        for (const char (&iBw)[25] : ReplyBlock[iB].word)
                         {
                             // skip any word in the reply block that is not valid
                             if (iBw[0] == '\0')
@@ -230,7 +230,7 @@ void cChatEngine::think() {
         int iMax = -1;
 
         // now choose a sentence to reply with
-        for (char (&iS)[128] : ReplyBlock[iTheBlock].sentence)
+        for (const char (&iS)[128] : ReplyBlock[iTheBlock].sentence)
         {
             // Find max sentences of this reply block
             if (iS[0] != '\0')

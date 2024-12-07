@@ -476,7 +476,7 @@ public:
     // -------------------
 	
     bool hasEnemy() const;
-    bool hasEnemy(edict_t * pEdict) const;
+    bool hasEnemy(const edict_t * pEdict) const;
     edict_t * getEnemyEdict() const;
 
     bool hasGoal() const;

@@ -81,7 +81,7 @@ public:
    void SetNewRound(bool bState);
    void resetRoundTime();
    void SetRoundTime(float fTime);
-   void DetermineMapGoal() const;
+   static void DetermineMapGoal();
 
    // ---------------------
    char *RandomSentence();

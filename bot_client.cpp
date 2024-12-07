@@ -27,6 +27,7 @@
   *
   **/
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <extdll.h>
@@ -825,8 +826,7 @@ void BotClient_Valve_ScreenFade(void *p, int bot_index) {
 
         float length = (static_cast<float>(duration + hold_time)) / 4096.0f;
         int iDevide = bots[bot_index].bot_skill;
-        if (iDevide < 1)
-            iDevide = 1;
+        iDevide = std::max(iDevide, 1);
 
         length -= (static_cast<float>(10) / static_cast<float>(iDevide) * 0.5f);
 

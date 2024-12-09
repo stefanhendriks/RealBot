@@ -35,6 +35,7 @@ void BotThink(cBot * pBot);
 
 void botFixIdealPitch(edict_t * pEdict);
 void botFixIdealYaw(edict_t * pEdict);
+bool traceLine(const Vector& v_source, const Vector& v_dest, const edict_t* pEdict, TraceResult& tr);
 bool BotCanJumpUp(const cBot * pBot);
 bool BotCanDuckUnder(const cBot * pBot);
 

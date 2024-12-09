@@ -858,27 +858,46 @@ bool FUNC_IsOnLadder(const edict_t *pEntity) {
     return false;
 }
 
-void FUNC_FindBreakable(edict_t* pEntity) //TODO: not functioning, bots won't shoot windows nor vent doors to proceed [APG]RoboCop[CL]
+void FUNC_FindBreakable(cBot* pBot)  //TODO: not functioning, bots won't shoot windows nor vent doors to proceed [APG]RoboCop[CL]
 {
 	// The "func_breakable" entity required for glass breaking and weak doors for bots to recognise,
-	// in order to attack breakable objects that would block their way.
-	
-	for (int i = 0; i < gpGlobals->maxEntities; i++) {
-		edict_t* pEdict = INDEXENT(i);
+    // in order to attack breakable objects that would block their way.
 
-		if (pEdict == nullptr)
-			continue;
+    if (pBot == nullptr) {
+        return; // Ensure pBot is not null
+    }
 
-		if (pEdict->v.flags & FL_DORMANT)
-			continue;
+    for (int i = 0; i < gpGlobals->maxEntities; ++i) {
+        edict_t* pEdict = INDEXENT(i);
+        if (pEdict == nullptr || (pEdict->v.flags & FL_DORMANT)) {
+            continue; // Skip null or dormant entities
+        }
 
-        if (pEdict->v.classname != 0 && std::strcmp(STRING(pEdict->v.classname), "func_breakable") == 0) {
-            if (pEdict->v.origin == pEntity->v.origin) {
-                pEntity->v.enemy = pEdict;
-                return;
+        const char* classname = STRING(pEdict->v.classname);
+
+        if (classname != nullptr && std::strcmp(classname, "func_breakable") == 0) {
+            if (pBot->canSeeEntity(pEdict)) {
+
+	            constexpr float SHOOT_WAIT_TIME = 1.0f;
+	            constexpr float SHOOT_DELAY = 0.1f;
+
+	            // Set the breakable entity as the bot's enemy
+                pBot->pEdict->v.enemy = pEdict;
+
+                // Set shooting times
+                pBot->f_shoot_time = gpGlobals->time + SHOOT_DELAY;
+                pBot->f_shoot_wait_time = gpGlobals->time + SHOOT_WAIT_TIME;
+
+                // Aim at the breakable entity
+                pBot->vBody = pEdict->v.origin;
+                pBot->vHead = pEdict->v.origin;
+
+                // Shoot at the breakable entity
+                UTIL_BotPressKey(pBot, IN_ATTACK);
+                return; // Exit after finding the first breakable entity
             }
         }
-	}
+    }
 }
 
 /*bool IsShootableBreakable(edict_t* pent)  // KWo - 08.02.2006

@@ -31,7 +31,8 @@
 #ifndef CHATENGINE_H
 #define CHATENGINE_H
 
-#define MAX_BLOCKS	100
+constexpr int MAX_BLOCKS = 100;
+
 #define BLOCK_DEATHS (MAX_BLOCKS-1)
 
 static constexpr int MAX_SENTENCE_LENGTH = 128;
@@ -62,7 +63,7 @@ public:
    void think();                // make the chat engine think
 
    // add sentence from any player/bot into memory to handle
-   void set_sentence(char csender[30], char csentence[MAX_SENTENCE_LENGTH]);
+   void set_sentence(char csender[32], char csentence[MAX_SENTENCE_LENGTH]);
 
    // handles a sentence, decides to reply on it or not.
    void handle_sentence();

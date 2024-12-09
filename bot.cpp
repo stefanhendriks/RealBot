@@ -3640,7 +3640,7 @@ void cBot::UpdateStatus() {
 bool BotRadioAction() {
 	char name[64];
 	bool unstood = false;
-	edict_t *plr = nullptr;
+	edict_t* plr = nullptr;
 	int team = -1;
 	int i;
 	int radios = 0;              // Hold amount of replies here, so we don't flood :)
@@ -3648,7 +3648,7 @@ bool BotRadioAction() {
 
 	// First find the team messager name
 	for (i = 1; i <= gpGlobals->maxClients; i++) {
-		edict_t *pPlayer = INDEXENT(i);   // Get pEdict
+		edict_t* pPlayer = INDEXENT(i);   // Get pEdict
 		if (pPlayer)              // If player exists
 		{
 			char netname[64];
@@ -3663,7 +3663,7 @@ bool BotRadioAction() {
 
 	// Check players and check if radio message applies to them
 	for (i = 1; i <= gpGlobals->maxClients; i++) {
-		edict_t *pPlayer = INDEXENT(i);
+		edict_t* pPlayer = INDEXENT(i);
 		if (pPlayer) {
 			char netname[64];
 
@@ -3675,13 +3675,13 @@ bool BotRadioAction() {
 				UTIL_GetBotPointer(pPlayer) != nullptr)   // and a RealBot
 			{
 				// here are all bots
-				cBot *BotPointer = UTIL_GetBotPointer(pPlayer);
+				cBot* BotPointer = UTIL_GetBotPointer(pPlayer);
 
 				if (BotPointer == nullptr)
 					continue;        // somehow this fucked up, bail out
 
 				const float distance = func_distance(plr->v.origin,
-													BotPointer->pEdict->v.origin);        // distance between the 2
+					BotPointer->pEdict->v.origin);        // distance between the 2
 
 				// Same team, randomly, do we even listen to the radio?
 				// the more further away, the more chance it will not listen
@@ -3736,7 +3736,7 @@ bool BotRadioAction() {
 
 						// Find player who issues this message and go to it
 						const int iBackupNode =
-								NodeMachine.getClosestNode(plr->v.origin, NODE_ZONE, plr);
+							NodeMachine.getClosestNode(plr->v.origin, NODE_ZONE, plr);
 
 						// Help this player
 						if (iBackupNode > -1) {
@@ -3761,7 +3761,7 @@ bool BotRadioAction() {
 					if (std::strstr(message, "#Stick_together_team") != nullptr) {
 						BotPointer->rprint_trace("BotRadioAction", "Understood Stick together team - no logic");
 						unstood = true;
-						can_do_negative = false;                    	
+						can_do_negative = false;
 					}
 					// cover me|| strstr (message, "#Cover_me") != NULL
 
@@ -3787,19 +3787,19 @@ bool BotRadioAction() {
 					if (std::strstr(message, "#Taking_fire") != nullptr) {
 						BotPointer->rprint_trace("BotRadioAction", "Understood Taking fire");
 						unstood = true;
-						
+
 						// Find player who issued this message and go to it
 						const int iBackupNode =
 							NodeMachine.getClosestNode(plr->v.origin, NODE_ZONE, plr);
-						
+
 						if (iBackupNode > -1) {
 							BotPointer->rprint_trace("BotRadioAction", "Found node nearby player who requested backup/reported taking fire.");
 							BotPointer->setGoalNode(iBackupNode);
 							BotPointer->forgetPath();
 							BotPointer->f_camp_time = gpGlobals->time - 1;
 							BotPointer->f_walk_time = gpGlobals->time;
-							}
-						
+						}
+
 					}
 					// Team fall back!
 					if (std::strstr(message, "#Team_fall_back") != nullptr) {
@@ -3825,7 +3825,8 @@ bool BotRadioAction() {
 
 							if constexpr (!report_back) {
 								UTIL_BotRadioMessage(BotPointer, 3, "1", "");   // Roger that!
-							} else {
+							}
+							else {
 								UTIL_BotRadioMessage(BotPointer, 3, "6", "");   // Reporting in!
 							}
 

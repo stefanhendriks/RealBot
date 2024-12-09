@@ -68,6 +68,14 @@ public:
 
     // -----------------
     void init();                 // Init (info)nodes
+
+    void initNodes();
+    void initializeNode(tNode& node);
+    void initTroubles();
+    void initPaths();
+    void initVisTable();
+    void initMeredians();
+
     void save() const;           // Save nodes on disk
     void load();                 // Load nodes on disk
     void save_important() const;
@@ -206,7 +214,14 @@ private:
 
     static void makeAllWaypointsAvailable();
 
+    bool isValidNodeIndex(int index) const;
+
+    bool isInvalidNode(int index) const;
+
+    void buildPath(int nodeStartIndex, int nodeTargetIndex, int botIndex, cBot* pBot);
+
     static void closeNode(int nodeIndex, int parent, float cost);
+
     void openNeighbourNodes(int startNodeIndex, int nodeToOpenNeighboursFrom, int destinationNodeIndex, int botTeam) const;
 
     static std::string getGoalTypeAsText(const tGoal& goal);

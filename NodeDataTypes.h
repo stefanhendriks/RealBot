@@ -177,6 +177,7 @@ typedef struct {
 	Vector origin;                   // Node origin
 	int iNeighbour[MAX_NEIGHBOURS];  // Reachable nodes for this node
 	int iNodeBits;
+	int index;
 }
 tNode;
 

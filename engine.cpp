@@ -416,6 +416,9 @@ void pfnWriteString(const char *sz) {
             else if (std::strstr(sz, "Need backup") != nullptr) {
                 std::strcpy(message, "#Need_backup");
             }
+            else if (std::strstr(sz, "Enemy spotted") != nullptr) {
+                std::strcpy(message, "#Enemy_spotted");
+            }
             else if (std::strstr(sz, "Taking Fire.. Need Assistance!") != nullptr) {
                 std::strcpy(message, "#Taking_fire");
             }

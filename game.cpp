@@ -127,7 +127,7 @@ void cGame::InitNewRound() {
     DetermineMapGoal();
 
     // initialize bots for new round
-    for (auto& bot : bots)
+    for (cBot& bot : bots)
     {
 	    if (bot.bIsUsed) {
             bot.NewRound();

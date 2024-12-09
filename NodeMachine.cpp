@@ -145,41 +145,44 @@ void cNodeMachine::init() {
     rblog("cNodeMachine::init() - START\n");
     iMaxUsedNodes = 0;
 
-    for (int i = 0; i < MAX_NODES; i++) {
-        // --- nodes
-        Nodes[i].origin = Vector(9999, 9999, 9999);
-        for (int& n : Nodes[i].iNeighbour)
-	        n = -1;
-
-        // No bits set
-        Nodes[i].iNodeBits = 0;
-
-        // --- info nodes
-        for (float& d : InfoNodes[i].fDanger)
-        {
-	        d = 0.0f;
-        }
-    }
-
-    // Init trouble
-    for (tTrouble& Trouble : Troubles)
-    {
-	    Trouble.iFrom = -1;
-	    Trouble.iTo = -1;
-	    Trouble.iTries = -1;
-    }
-
+    initNodes();
+    initTroubles();
     initGoals();
+    initPaths();
+    initVisTable();
+    initMeredians();
 
-    // Init paths
-    for (int p = 0; p < MAX_BOTS; p++)
-        path_clear(p);
+    rblog("cNodeMachine::init() - END\n");
+}
 
-    // Init VisTable
-    for (unsigned char& iVx : iVisChecked)
-    {
-	    iVx = 0;     // not checked yet
+void cNodeMachine::initNodes() {
+    for (tNode& node : Nodes) {
+        initializeNode(node);
     }
+}
+void cNodeMachine::initializeNode(tNode& node) {
+    node.origin = INVALID_VECTOR;
+    std::fill(std::begin(node.iNeighbour), std::end(node.iNeighbour), -1);
+    node.iNodeBits = 0;
+    std::fill(std::begin(InfoNodes[node.index].fDanger), std::end(InfoNodes[node.index].fDanger), 0.0f);
+}
+
+void cNodeMachine::initTroubles() {
+    for (tTrouble& Trouble : Troubles) {
+        Trouble.iFrom = -1;
+        Trouble.iTo = -1;
+        Trouble.iTries = -1;
+    }
+}
+
+void cNodeMachine::initPaths() {
+    for (int p = 0; p < MAX_BOTS; p++) {
+        path_clear(p);
+    }
+}
+
+void cNodeMachine::initVisTable() {
+    std::fill(std::begin(iVisChecked), std::end(iVisChecked), 0);
 
     // CODE: From cheesemonster
     constexpr unsigned long iSize = g_iMaxVisibilityByte;
@@ -191,19 +194,17 @@ void cNodeMachine::init() {
         std::memset(cVisTable, 0, iSize);
     }
     else {
-    	rblog("cNodeMachine::init() - ERROR: Could not allocate memory for visibility table\n");
+        rblog("cNodeMachine::init() - ERROR: Could not allocate memory for visibility table\n");
     }
-
     ClearVisibilityTable();
-    // END:
+}
 
-    // Init Meredians
-    for (tMeredian (&Meredian)[64] : Meredians)
-	    for (tMeredian& iMy : Meredian)
-		    for (int& iNode : iMy.iNodes)
-			    iNode = -1;
-
-    rblog("cNodeMachine::init() - END\n");
+void cNodeMachine::initMeredians() {
+    for (tMeredian (&Meredian)[64] : Meredians) {
+        for (tMeredian& iMy : Meredian) {
+            std::fill(std::begin(iMy.iNodes), std::end(iMy.iNodes), -1);
+        }
+    }
 }
 
 void cNodeMachine::initGoals() {
@@ -2292,7 +2293,7 @@ bool cNodeMachine::createPath(int nodeStartIndex, int nodeTargetIndex, int botIn
         UTIL_GetTeam(pBot->pEdict); // Stefan: yes we use 0-1 based, not 1-2 based
     }
 
-    const Vector &INVALID_VECTOR = Vector(9999, 9999, 9999);
+    const Vector& INVALID_VECTOR = Vector(9999, 9999, 9999);
 
     // start or target vector may not be invalid
     if (Nodes[nodeStartIndex].origin == INVALID_VECTOR ||
@@ -2311,7 +2312,7 @@ bool cNodeMachine::createPath(int nodeStartIndex, int nodeTargetIndex, int botIn
     // Our start waypoint is open
     constexpr float gCost = 0.0f; // distance from starting node
     const float hCost = func_distance(Nodes[nodeStartIndex].origin,
-                                      Nodes[nodeTargetIndex].origin); // distance from end node to node
+        Nodes[nodeTargetIndex].origin); // distance from end node to node
     const float cost = gCost + hCost;
     closeNode(nodeStartIndex, nodeStartIndex, cost);
     openNeighbourNodes(nodeStartIndex, nodeStartIndex, nodeTargetIndex, -1);
@@ -2328,12 +2329,12 @@ bool cNodeMachine::createPath(int nodeStartIndex, int nodeTargetIndex, int botIn
         // go through all OPEN waypoints
         for (nodeIndex = 0; nodeIndex < MAX_NODES; nodeIndex++) {
             nodesEvaluated++; // increment nodesEvaluated each time a node is evaluated [APG]RoboCop[CL]
-        	tNodestar &nodeStar = astar_list[nodeIndex];
+            tNodestar& nodeStar = astar_list[nodeIndex];
 
             if (nodeStar.state == CLOSED || nodeStar.state == AVAILABLE) continue;
 
             // OPEN waypoint
-            tNode &node = Nodes[nodeIndex];
+            tNode& node = Nodes[nodeIndex];
             if (node.origin == INVALID_VECTOR) {
                 rblog("Evaluating an INVALID vector!?!\n");
                 nodeStar.state = CLOSED;
@@ -2364,7 +2365,8 @@ bool cNodeMachine::createPath(int nodeStartIndex, int nodeTargetIndex, int botIn
             }
 
             openNeighbourNodes(nodeStartIndex, nodeToClose, nodeTargetIndex, botTeam);
-        } else {
+        }
+        else {
             break;
         }
     }
@@ -2379,7 +2381,7 @@ bool cNodeMachine::createPath(int nodeStartIndex, int nodeTargetIndex, int botIn
     }
 
     for (nodeIndex = 0; nodeIndex < MAX_PATH_NODES; nodeIndex++) {
-	    const tNodestar &nodeStar = astar_list[nodeIndex];
+        const tNodestar& nodeStar = astar_list[nodeIndex];
         if (nodeStar.state == AVAILABLE) continue;
     }
 
@@ -2408,7 +2410,8 @@ bool cNodeMachine::createPath(int nodeStartIndex, int nodeTargetIndex, int botIn
         if (wpta == nodeStartIndex) {
             // Check if we did not already had this waypoint before
             built = true;       // We finished building this path.
-        } else {
+        }
+        else {
             // Whenever wpta is containing bad information...
             if (wpta < 0 || wpta > MAX_NODES)
                 break;           // ...get out aswell
@@ -2432,7 +2435,7 @@ bool cNodeMachine::createPath(int nodeStartIndex, int nodeTargetIndex, int botIn
 
     // Now set the path up correctly
     for (nodeIndex = MAX_NODES - 1; nodeIndex > -1; nodeIndex--) {
-	    const int node = temp_path[nodeIndex];
+        const int node = temp_path[nodeIndex];
         if (node < 0)
             continue;
 
@@ -2460,7 +2463,8 @@ bool cNodeMachine::createPath(int nodeStartIndex, int nodeTargetIndex, int botIn
         pBot->beginWalkingPath();
         pBot->setTimeToMoveToNode(2); // set timer (how much time do we allow ourselves to reach the following node)
         pBot->rprint("cNodeMachine::createPath", "Path creation finished successfully");
-    } else {
+    }
+    else {
         rblog("createPath (without bot) - path creation finished\n");
     }
 
@@ -3607,7 +3611,7 @@ void cNodeMachine::path_think(cBot *pBot, float distanceMoved) {
                                         node_vector(Goals[goalIndex].iNode)
                                 );
 
-                                const float score = distanceToC4FromCloseNode / distanceToC4FromThisGoalNode;
+                                score = distanceToC4FromCloseNode / distanceToC4FromThisGoalNode;
                                 goalscore = 1.5f + score;
                                 std::memset(msg, 0, sizeof(msg));
                                 snprintf(msg, sizeof(msg), "Distance from C4 to closest node is %f, distance from evaluating node to C4 is %f, resulting into score of %f",
@@ -3703,7 +3707,7 @@ void cNodeMachine::path_think(cBot *pBot, float distanceMoved) {
 	    snprintf(msg, sizeof(msg), "Evaluating goal %s gives a score of %f, highest score so far is %f",
 	             Goals[goalIndex].name, score, highestScore);
         pBot->rprint_trace("path_think/determine goal", msg);
-        if (score == highestScore && RANDOM_LONG(0,100) < 50) {
+        if (static_cast<int>(score) == static_cast<int>(highestScore) && RANDOM_LONG(0,100) < 50) {
             pBot->rprint_trace("path_think/determine goal", "SCORE == HIGHEST SCORE and chosen to override randomly.");
             highestScore = score;
             iFinalGoalNode = Goals[goalIndex].iNode;

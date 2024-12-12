@@ -15,7 +15,7 @@
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 //
 // See the GNU General Public License for more details at:
 // http://www.gnu.org/copyleft/gpl.html
@@ -31,18 +31,17 @@
 #ifndef WORLD_H
 #define WORLD_H
 
-
 class World
 {
-   public:
+public:
 
-   char bspname[256];  // name of the currently loaded BSP file
+	char bspname[256];  // name of the currently loaded BSP file
 
-   World(void);
-   ~World(void);
+	World(void);
+	~World(void);
 
-   void FreeWorld(void);
-   void LoadBSP(char *bspfile);
+	void FreeWorld(void);
+	void LoadBSP(char* bspfile);
 };
 
 #ifndef __linux__
@@ -50,4 +49,3 @@ BOOL CenterWindow(HWND hWnd);
 #endif
 
 #endif
-

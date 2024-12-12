@@ -5,7 +5,7 @@ ARCHFLAG = -m32 -g
 METAMOD_SRCDIR = ./dependencies/metamod-hl1/metamod
 HLSDK_BASEDIR = ./dependencies/hlsdk
 
-BASEFLAGS = -Dstricmp=strcasecmp -Dstrcmpi=strcasecmp -Dlinux=1 -g
+BASEFLAGS = -Dstricmp=strcasecmp -Dstrcmpi=strcasecmp -Dlinux=1 -ggdb3
 CPPFLAGS = ${BASEFLAGS} ${ARCHFLAG} -O0 -w -I"${METAMOD_SRCDIR}" -I"${HLSDK_BASEDIR}/common" -I"${HLSDK_BASEDIR}/dlls" -I"${HLSDK_BASEDIR}/engine" -I"${HLSDK_BASEDIR}/pm_shared" -I"${HLSDK_BASEDIR}/public"
 
 OBJ = NodeMachine.o \
@@ -30,7 +30,7 @@ ifeq ($(UNAME_S),Darwin)
 SO_SUFFIX = dylib
 endif
 
-realbot_mm_i386.${SO_SUFFIX}: ${OBJ}
+realbot_mm.${SO_SUFFIX}: ${OBJ}
 	${CPP} ${ARCHFLAG} -fPIC -shared -o $@ ${OBJ} -ldl
 	mkdir -p Release
 	mv $@ ${OBJ} Release

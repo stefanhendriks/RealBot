@@ -33,7 +33,10 @@
   **/
 
 // Sections
-#define INI_NONE       -1
+#ifndef INIPARSER_H
+#define INIPARSER_H
+
+#define INI_NONE       (-1)
 #define INI_SKILL       0       // Bot skill
 #define INI_WEAPON      1       // Bot weapon preference
 #define INI_GAME        2       // Bot general game behaviour
@@ -50,7 +53,7 @@
 // NOTE: For weapon_buy_table.iId!
 
 // 'Words'
-#define WORD_NONE       -1
+#define WORD_NONE       (-1)
 #define WORD_WALK        0
 #define WORD_RUN         1
 #define WORD_SHOOT       2
@@ -118,3 +121,5 @@ void INI_PARSE_BOTS(char cBotName[33], cBot * pBot);
 void INI_PARSE_BUYTABLE();
 void INI_PARSE_IAD();
 void INI_PARSE_CHATFILE();
+
+#endif // INIPARSER_H

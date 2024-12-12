@@ -28,10 +28,14 @@
   **/
 
 // Chatting Engine
-#define MAX_BLOCKS	100
-#define BLOCK_DEATHS MAX_BLOCKS-1
+#ifndef CHATENGINE_H
+#define CHATENGINE_H
 
-static const int MAX_SENTENCE_LENGTH = 128;
+constexpr int MAX_BLOCKS = 100;
+
+#define BLOCK_DEATHS (MAX_BLOCKS-1)
+
+static constexpr int MAX_SENTENCE_LENGTH = 128;
 // Reply block
 typedef struct {
    // words, hinting that in this block a logical sentence will be to reply with
@@ -59,8 +63,10 @@ public:
    void think();                // make the chat engine think
 
    // add sentence from any player/bot into memory to handle
-   void set_sentence(char csender[30], char csentence[MAX_SENTENCE_LENGTH]);
+   void set_sentence(char csender[32], char csentence[MAX_SENTENCE_LENGTH]);
 
    // handles a sentence, decides to reply on it or not.
    void handle_sentence();
 };
+
+#endif // CHATENGINE_H

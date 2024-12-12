@@ -1,4 +1,4 @@
-char * Version = "0.9.7 of $Date$" ;
+char* Version = "0.9.7 of $Date$";
 
 // $Log: build.cpp,v $
 // Revision 1.6  2004/07/27 07:43:35  eric

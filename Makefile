@@ -1,12 +1,14 @@
 CPP = g++
-
 ARCHFLAG = -m32
 
-METAMOD_SRCDIR = ./dependencies/metamod-hl1/metamod
-HLSDK_BASEDIR = ./dependencies/hlsdk
+META_DIR = ./dependencies/metamod-hl1/metamod
+HLSDK_DIR = ./dependencies/hlsdk
 
 BASEFLAGS = -Dstricmp=strcasecmp -Dstrcmpi=strcasecmp -Dlinux=1
-CPPFLAGS = ${BASEFLAGS} ${ARCHFLAG} -O2 -w -I"${METAMOD_SRCDIR}" -I"${HLSDK_BASEDIR}/common" -I"${HLSDK_BASEDIR}/dlls" -I"${HLSDK_BASEDIR}/engine" -I"${HLSDK_BASEDIR}/pm_shared" -I"${HLSDK_BASEDIR}/public"
+CPPFLAGS = ${BASEFLAGS} ${ARCHFLAG} -O2 -mtune=generic -march=i686 -mmmx -msse -msse2 -O2 -mfpmath=sse -s \
+        -Wno-write-strings -Wno-attributes -std=gnu++14 -static-libstdc++ -shared-libgcc \
+        -I"${META_DIR}" -I"${HLSDK_DIR}/common" -I"${HLSDK_DIR}/dlls" \
+        -I"${HLSDK_DIR}/engine" -I"${HLSDK_DIR}/pm_shared" -I"${HLSDK_DIR}/public"
 
 OBJ = NodeMachine.o \
 	bot.o \
@@ -30,7 +32,7 @@ ifeq ($(UNAME_S),Darwin)
 SO_SUFFIX = dylib
 endif
 
-realbot_mm_i386.${SO_SUFFIX}: ${OBJ}
+realbot_mm.${SO_SUFFIX}: ${OBJ}
 	${CPP} ${ARCHFLAG} -fPIC -shared -o $@ ${OBJ} -ldl
 	mkdir -p Release
 	mv $@ ${OBJ} Release

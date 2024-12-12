@@ -27,8 +27,9 @@
   *
   **/
 
-
-#include <string.h>
+#include <algorithm>
+#include <cmath>
+#include <cstring>
 #include <extdll.h>
 #include <dllapi.h>
 #include <meta_api.h>
@@ -58,11 +59,11 @@ static FILE *fp;
 // This message is sent when the Counter-Strike VGUI menu is displayed.
 void BotClient_CS_VGUI(void *p, int bot_index) {
     //DebugOut("bot_client: BotClient_CS_VGUI()\n");
-    if ((*(int *) p) == 2)       // is it a team select menu?
+    if (*static_cast<int*>(p) == 2)       // is it a team select menu?
         bots[bot_index].start_action = MSG_CS_TEAM_SELECT;
-    else if ((*(int *) p) == 26) // is is a terrorist model select menu?
+    else if (*static_cast<int*>(p) == 26) // is is a terrorist model select menu?
         bots[bot_index].start_action = MSG_CS_T_SELECT;
-    else if ((*(int *) p) == 27) // is is a counter-terrorist model select menu?
+    else if (*static_cast<int*>(p) == 27) // is is a counter-terrorist model select menu?
         bots[bot_index].start_action = MSG_CS_CT_SELECT;
 }
 
@@ -76,18 +77,18 @@ void BotClient_CS_ShowMenu(void *p, int bot_index) {
         return;
     }
 
-    if (strcmp((char *) p, "#Team_Select") == 0 ||
-        strcmp((char *) p, "#Team_Select_Spect") == 0 ||
-        strcmp((char *) p, "#IG_Team_Select_Spect") == 0 ||
-        strcmp((char *) p, "#IG_Team_Select") == 0 ||
-        strcmp((char *) p, "#IG_VIP_Team_Select") == 0 ||
-        strcmp((char *) p, "#IG_VIP_Team_Select_Spect") == 0) {
+    if (std::strcmp(static_cast<char*>(p), "#Team_Select") == 0 ||
+        std::strcmp(static_cast<char*>(p), "#Team_Select_Spect") == 0 ||
+        std::strcmp(static_cast<char*>(p), "#IG_Team_Select_Spect") == 0 ||
+        std::strcmp(static_cast<char*>(p), "#IG_Team_Select") == 0 ||
+        std::strcmp(static_cast<char*>(p), "#IG_VIP_Team_Select") == 0 ||
+        std::strcmp(static_cast<char*>(p), "#IG_VIP_Team_Select_Spect") == 0) {
         // team select menu?
         bots[bot_index].start_action = MSG_CS_TEAM_SELECT;
-    } else if (strcmp((char *) p, "#Terrorist_Select") == 0) {
+    } else if (std::strcmp(static_cast<char*>(p), "#Terrorist_Select") == 0) {
         // T model select?
         bots[bot_index].start_action = MSG_CS_T_SELECT;
-    } else if (strcmp((char *) p, "#CT_Select") == 0) {
+    } else if (std::strcmp(static_cast<char*>(p), "#CT_Select") == 0) {
         // CT model select menu?
         bots[bot_index].start_action = MSG_CS_CT_SELECT;
     }
@@ -104,32 +105,32 @@ void BotClient_Valve_WeaponList(void *p, int bot_index) {
 
     if (state == 0) {
         state++;
-        strcpy(bot_weapon.szClassname, (char *) p);
+        std::strcpy(bot_weapon.szClassname, static_cast<char*>(p));
     } else if (state == 1) {
         state++;
-        bot_weapon.iAmmo1 = *(int *) p;   // ammo index 1
+        bot_weapon.iAmmo1 = *static_cast<int*>(p);   // ammo index 1
     } else if (state == 2) {
         state++;
-        bot_weapon.iAmmo1Max = *(int *) p;        // max ammo1
+        bot_weapon.iAmmo1Max = *static_cast<int*>(p);        // max ammo1
     } else if (state == 3) {
         state++;
-        bot_weapon.iAmmo2 = *(int *) p;   // ammo index 2
+        bot_weapon.iAmmo2 = *static_cast<int*>(p);   // ammo index 2
     } else if (state == 4) {
         state++;
-        bot_weapon.iAmmo2Max = *(int *) p;        // max ammo2
+        bot_weapon.iAmmo2Max = *static_cast<int*>(p);        // max ammo2
     } else if (state == 5) {
         state++;
-        bot_weapon.iSlot = *(int *) p;    // slot for this weapon
+        bot_weapon.iSlot = *static_cast<int*>(p);    // slot for this weapon
     } else if (state == 6) {
         state++;
-        bot_weapon.iPosition = *(int *) p;        // position in slot
+        bot_weapon.iPosition = *static_cast<int*>(p);        // position in slot
     } else if (state == 7) {
         state++;
-        bot_weapon.iId = *(int *) p;      // weapon ID
+        bot_weapon.iId = *static_cast<int*>(p);      // weapon ID
     } else if (state == 8) {
         state = 0;
 
-        bot_weapon.iFlags = *(int *) p;   // flags for weapon (WTF???)
+        bot_weapon.iFlags = *static_cast<int*>(p);   // flags for weapon (WTF???)
 
         // store away this weapon with it's ammo information...
         weapon_defs[bot_weapon.iId] = bot_weapon;
@@ -174,21 +175,21 @@ void BotClient_Valve_CurrentWeapon(void *p, int bot_index) {
     static int state = 0;        // current state machine state
     static int iState;
     static int iId;
-    static int iClip;
 
     if (state == 0) {
         state++;
-        iState = *(int *) p;      // state of the current weapon
+        iState = *static_cast<int*>(p);      // state of the current weapon
     } else if (state == 1) {
         state++;
-        iId = *(int *) p;         // weapon ID of current weapon
+        iId = *static_cast<int*>(p);         // weapon ID of current weapon
     } else if (state == 2) {
-        state = 0;
+	    static int iClip;
+	    state = 0;
 
-        iClip = *(int *) p;       // ammo currently in the clip for this weapon
+        iClip = *static_cast<int*>(p);       // ammo currently in the clip for this weapon
 
-        if (iId <= 31) {
-            bots[bot_index].bot_weapons |= (1 << iId);     // set this weapon bit
+        if (iId < static_cast<int>(std::size(weapon_defs))) {
+            bots[bot_index].bot_weapons |= 1 << iId;     // set this weapon bit
 
             if (iState == 1) {
                 bots[bot_index].current_weapon.iId = iId;   // weapon id
@@ -205,7 +206,6 @@ void BotClient_Valve_CurrentWeapon(void *p, int bot_index) {
             }
         }
     }
-
 }
 
 void BotClient_CS_CurrentWeapon(void *p, int bot_index) {
@@ -231,20 +231,19 @@ void BotClient_Valve_AmmoX(void *p, int bot_index) {
     //DebugOut("bot_client: BotClient_Valve_AmmoX()\n");
     static int state = 0;        // current state machine state
     static int index;
-    static int ammount;
-    int ammo_index;
 
     if (state == 0) {
         state++;
-        index = *(int *) p;       // ammo index (for type of ammo)
+        index = *static_cast<int*>(p);       // ammo index (for type of ammo)
     } else if (state == 1) {
-        state = 0;
+	    static int ammount;
+	    state = 0;
 
-        ammount = *(int *) p;     // the ammount of ammo currently available
+        ammount = *static_cast<int*>(p);     // the ammount of ammo currently available
 
         bots[bot_index].m_rgAmmo[index] = ammount;        // store it away
 
-        ammo_index = bots[bot_index].current_weapon.iId;
+        const int ammo_index = bots[bot_index].current_weapon.iId;
 
         // update the ammo counts for this weapon...
         bots[bot_index].current_weapon.iAmmo1 =
@@ -282,20 +281,19 @@ void BotClient_Valve_AmmoPickup(void *p, int bot_index) {
     //DebugOut("bot_client: BotClient_Valve_AmmoPickup()\n");
     static int state = 0;        // current state machine state
     static int index;
-    static int ammount;
-    int ammo_index;
 
     if (state == 0) {
         state++;
-        index = *(int *) p;
+        index = *static_cast<int*>(p);
     } else if (state == 1) {
-        state = 0;
+	    static int ammount;
+	    state = 0;
 
-        ammount = *(int *) p;
+        ammount = *static_cast<int*>(p);
 
         bots[bot_index].m_rgAmmo[index] = ammount;
 
-        ammo_index = bots[bot_index].current_weapon.iId;
+        const int ammo_index = bots[bot_index].current_weapon.iId;
 
         // update the ammo counts for this weapon...
         bots[bot_index].current_weapon.iAmmo1 =
@@ -325,10 +323,7 @@ void BotClient_FLF_AmmoPickup(void *p, int bot_index) {
 
 // This message gets sent when the bot picks up a weapon.
 void BotClient_Valve_WeaponPickup(void *p, int bot_index) {
-    //DebugOut("bot_client: BotClient_Valve_WeaponPickup()\n");
-    int index;
-
-    index = *(int *) p;
+	const int index = *static_cast<int*>(p);
 
     // set this weapon bit to indicate that we are carrying this weapon
     bots[bot_index].bot_weapons |= (1 << index);
@@ -379,7 +374,7 @@ void BotClient_FLF_ItemPickup(void *p, int bot_index) {
 // This message gets sent when the bots health changes.
 void BotClient_Valve_Health(void *p, int bot_index) {
     //DebugOut("bot_client: BotClient_Valve_Health()\n");
-    bots[bot_index].bot_health = *(int *) p;     // health ammount
+    bots[bot_index].bot_health = *static_cast<int*>(p);     // health ammount
 }
 
 void BotClient_CS_Health(void *p, int bot_index) {
@@ -403,7 +398,7 @@ void BotClient_FLF_Health(void *p, int bot_index) {
 // This message gets sent when the bots armor changes.
 void BotClient_Valve_Battery(void *p, int bot_index) {
     //DebugOut("bot_client: BotClient_Valve_Battery()\n");
-    bots[bot_index].bot_armor = *(int *) p;      // armor ammount
+    bots[bot_index].bot_armor = *static_cast<int*>(p);      // armor ammount
 }
 
 void BotClient_CS_Battery(void *p, int bot_index) {
@@ -435,24 +430,24 @@ void BotClient_Valve_Damage(void *p, int bot_index) {
 
     if (state == 0) {
         state++;
-        damage_armor = *(int *) p;
+        damage_armor = *static_cast<int*>(p);
     } else if (state == 1) {
         state++;
-        damage_taken = *(int *) p;
+        damage_taken = *static_cast<int*>(p);
     } else if (state == 2) {
         state++;
-        damage_bits = *(int *) p;
+        damage_bits = *static_cast<int*>(p);
     } else if (state == 3) {
         state++;
-        damage_origin.x = *(float *) p;
+        damage_origin.x = *static_cast<float*>(p);
     } else if (state == 4) {
         state++;
-        damage_origin.y = *(float *) p;
+        damage_origin.y = *static_cast<float*>(p);
     } else if (state == 5) {
         state = 0;
 
-        damage_origin.z = *(float *) p;
-        if ((damage_armor > 0) || (damage_taken > 0)) {
+        damage_origin.z = *static_cast<float*>(p);
+        if (damage_armor > 0 || damage_taken > 0) {
 
             // Damage recieved:
             // - when the prev node was higher (so we are sure we do FIX the correct nodes!)
@@ -462,13 +457,13 @@ void BotClient_Valve_Damage(void *p, int bot_index) {
             if (damage_bits & (DMG_FALL | DMG_CRUSH)) {
                 pBot->rprint_trace("BotClient_Valve_Damage", "Taken fall damage!");
                 if (pBot->getPathIndex() > 0) { // was one node further, so we can use previous node!
-                    int iNode = NodeMachine.getNodeIndexFromBotForPath(pBot->iBotIndex, pBot->getPreviousPathIndex());
+	                const int iNode = NodeMachine.getNodeIndexFromBotForPath(pBot->iBotIndex, pBot->getPreviousPathIndex());
 
-                    float fDist = fabs(damage_origin.z - NodeMachine.node_vector(iNode).z);
+	                const float fDist = std::fabs(damage_origin.z - NodeMachine.node_vector(iNode).z);
                     if (fDist > 90) {
                         // we know where we came from, and we know where we went to
-                        int iNodeTo = NodeMachine.getNodeIndexFromBotForPath(pBot->iBotIndex,
-                                                                             pBot->getPathIndex());
+                        const int iNodeTo = NodeMachine.getNodeIndexFromBotForPath(pBot->iBotIndex,
+                                                                                   pBot->getPathIndex());
 
                         // remove connection?
 
@@ -484,7 +479,7 @@ void BotClient_Valve_Damage(void *p, int bot_index) {
                 return;
 
             // depending on bot skill slow this bot down a bit
-//            pBot->f_move_speed *= (((10 - pBot->bot_skill) + 1) / 10);
+			// pBot->f_move_speed *= (((10 - pBot->bot_skill) + 1) / 10);
 
             // if the bot doesn't have an enemy and someone is shooting at it then
             // turn in the attacker's direction...
@@ -492,7 +487,7 @@ void BotClient_Valve_Damage(void *p, int bot_index) {
                 // face the attacker...
                 edict_t *damageInflictor = pBot->pEdict->v.dmg_inflictor;
                 if (damageInflictor) {
-                    if (strcmp(STRING(damageInflictor->v.classname), "player") == 0) {
+                    if (std::strcmp(STRING(damageInflictor->v.classname), "player") == 0) {
                         // Face danger vector
                         pBot->vHead = damage_origin;
                         pBot->vBody = damage_origin;
@@ -502,7 +497,7 @@ void BotClient_Valve_Damage(void *p, int bot_index) {
                         pBot->rprint("BotClient_Valve_Damage", "Damage taken, by player, change goal to damage origin.");
 
                         char msg[255];
-                        sprintf(msg, "damage_origin (x,y,z) => (%f,%f,%f) | damageInflictor->v.origin (x,y,z) => (%f,%f,%f)",
+                        snprintf(msg, sizeof(msg), "damage_origin (x,y,z) => (%f,%f,%f) | damageInflictor->v.origin (x,y,z) => (%f,%f,%f)",
                                 damage_origin.x,
                                 damage_origin.y,
                                 damage_origin.z,
@@ -518,7 +513,7 @@ void BotClient_Valve_Damage(void *p, int bot_index) {
                         pBot->forgetPath();
                     } else {
                         char msg[255];
-                        sprintf(msg, "I have a damage inflictor! -> %s", STRING(damageInflictor->v.classname));
+                        snprintf(msg, sizeof(msg), "I have a damage inflictor! -> %s", STRING(damageInflictor->v.classname));
                         pBot->rprint("BotClient_Valve_Damage", msg);
                     }
                 } else {
@@ -537,7 +532,8 @@ void BotClient_CS_Damage(void *p, int bot_index) {
     BotClient_Valve_Damage(p, bot_index);
 }
 
-void BotClient_Gearbox_Damage(void *p, int bot_index) {
+// Not required? [APG]RoboCop[CL]
+/*void BotClient_Gearbox_Damage(void* p, int bot_index) {
     //DebugOut("bot_client: BotClient_Gearbox_Damage()\n");
     // this is just like the Valve Battery message
     BotClient_Valve_Damage(p, bot_index);
@@ -547,7 +543,7 @@ void BotClient_FLF_Damage(void *p, int bot_index) {
     //DebugOut("bot_client: BotClient_FLF_Damage()\n");
     // this is just like the Valve Battery message
     BotClient_Valve_Damage(p, bot_index);
-}
+}*/
 
 
 void BotClient_CS_SayText(void *p, int bot_index) {
@@ -566,36 +562,37 @@ void BotClient_CS_SayText(void *p, int bot_index) {
     // handling of this "SayText" thingy.
     if (counterstrike == 0) {
         if (state == 0) {
-            ucEntIndex = *(unsigned char *) p;
+            ucEntIndex = *static_cast<unsigned char*>(p);
         } else if (state == 1) {
-            cBot *pBot = &bots[bot_index];
+	        const cBot *pBot = &bots[bot_index];
 
             if (ENTINDEX(pBot->pEdict) != ucEntIndex) {
                 char sentence[MAX_SENTENCE_LENGTH];
                 char chSentence[MAX_SENTENCE_LENGTH];
                 char netname[30];
 
-                memset(sentence, 0, sizeof(sentence));
-                memset(chSentence, 0, sizeof(chSentence));
-                memset(netname, 0, sizeof(netname));
+                std::memset(sentence, 0, sizeof(sentence));
+                std::memset(chSentence, 0, sizeof(chSentence));
+                std::memset(netname, 0, sizeof(netname));
 
-                strcpy(sentence, (char *) p); // the actual sentence
+                std::strcpy(sentence, static_cast<char*>(p)); // the actual sentence
 
-                int length = 0;
+                unsigned int length = 0;
 
                 // FIXED: In any case that this might return NULL, do not crash the server
-                if (strstr(sentence, " : "))
-                    length = strlen(sentence) - strlen(strstr(sentence, " : "));
+                const char* found = std::strstr(sentence, " : ");
+                if (found != nullptr)
+                    length = std::strlen(sentence) - std::strlen(found);
 
-                int tc = 0, c;
+                int tc = 0;
 
-                for (c = length; c < MAX_SENTENCE_LENGTH; c++) {
+                for (unsigned int c = length; c < MAX_SENTENCE_LENGTH; c++) {
                     chSentence[tc] = sentence[c];
                     tc++;
                 }
 
-                edict_t *pPlayer = INDEXENT(ucEntIndex);
-                strcpy(netname, STRING(pPlayer->v.netname));
+                const edict_t *pPlayer = INDEXENT(ucEntIndex);
+                std::strcpy(netname, STRING(pPlayer->v.netname));
 
                 ChatEngine.set_sentence(netname, chSentence);
                 state = -1;
@@ -605,7 +602,7 @@ void BotClient_CS_SayText(void *p, int bot_index) {
         // CS 1.6
         if (state == 0) {
             // who sent this message?
-            ucEntIndex = *(unsigned char *) p;
+            ucEntIndex = *static_cast<unsigned char*>(p);
         }
             // to who?
         else if (state == 1) {
@@ -626,15 +623,15 @@ void BotClient_CS_SayText(void *p, int bot_index) {
             char netname[30];
 
             // init
-            memset(sentence, 0, sizeof(sentence));
-            memset(netname, 0, sizeof(netname));
+            std::memset(sentence, 0, sizeof(sentence));
+            std::memset(netname, 0, sizeof(netname));
 
             // copy in memory
-            strcpy(sentence, (char *) p);
+            std::strcpy(sentence, static_cast<char*>(p));
 
             // copy netname
-            edict_t *pPlayer = INDEXENT(ucEntIndex);
-            strcpy(netname, STRING(pPlayer->v.netname));
+            const edict_t *pPlayer = INDEXENT(ucEntIndex);
+            std::strcpy(netname, STRING(pPlayer->v.netname));
 
             // and give chatengine something to do
             ChatEngine.set_sentence(netname, sentence);
@@ -664,20 +661,20 @@ void BotClient_CS_StatusIcon(void *p, int bot_index) {
        //         byte   : blue
      */
     static int state = 0;        // current state machine state
-    static int EnableIcon;
 
-    if (p == 0)                  // A bandaid.  Make this whole thing more robust!
+    if (p == nullptr)                  // A bandaid.  Make this whole thing more robust!
     {
         state = 0;
         return;
     }
 
     switch (state++) {
-        case 0:                     // Enable or not?
-            EnableIcon = *(int *) p;  // check the byte
+	    static int EnableIcon;
+    case 0:                     // Enable or not?
+            EnableIcon = *static_cast<int*>(p);  // check the byte
             break;
         case 1:                     // Which icon
-            if (strcmp((char *) p, "buyzone") == 0) {
+            if (std::strcmp(static_cast<char*>(p), "buyzone") == 0) {
                 switch (EnableIcon) {
                     case 0:               // Not in buy zone
                         state = 0;
@@ -687,7 +684,7 @@ void BotClient_CS_StatusIcon(void *p, int bot_index) {
                     default:
                         break;
                 }
-            } else if (strcmp((char *) p, "c4") == 0) {
+            } else if (std::strcmp(static_cast<char*>(p), "c4") == 0) {
                 switch (EnableIcon) {
                     case 0:               // No C4
                         bots[bot_index].bHUD_C4_plantable = false;
@@ -702,7 +699,7 @@ void BotClient_CS_StatusIcon(void *p, int bot_index) {
                     default:
                         break;
                 }
-            } else if (strcmp((char *) p, "defuser") == 0) {
+            } else if (std::strcmp(static_cast<char*>(p), "defuser") == 0) {
                 switch (EnableIcon) {
                     case 0:               // No defuser
                         state = 0;
@@ -712,7 +709,7 @@ void BotClient_CS_StatusIcon(void *p, int bot_index) {
                     default:
                         break;
                 }
-            } else if (strcmp((char *) p, "rescue") == 0) {
+            } else if (std::strcmp(static_cast<char*>(p), "rescue") == 0) {
                 switch (EnableIcon) {
                     case 0:               // Not in rescue zone
                         state = 0;
@@ -749,7 +746,7 @@ void BotClient_CS_Money(void *p, int bot_index) {
     if (state == 0) {
         state++;
 
-        bots[bot_index].bot_money = *(int *) p;   // amount of money
+        bots[bot_index].bot_money = *static_cast<int*>(p);   // amount of money
     } else {
         state = 0;                // ingore this field
     }
@@ -761,17 +758,17 @@ void BotClient_Valve_DeathMsg(void *p, int bot_index) {
     static int state = 0;        // current state machine state
     static int killer_index;
     static int victim_index;
-    static edict_t *victim_edict;
-    static int index;
 
     if (state == 0) {
         state++;
-        killer_index = *(int *) p;        // ENTINDEX() of killer
+        killer_index = *static_cast<int*>(p);        // ENTINDEX() of killer
     } else if (state == 1) {
         state++;
-        victim_index = *(int *) p;        // ENTINDEX() of victim
+        victim_index = *static_cast<int*>(p);        // ENTINDEX() of victim
     } else if (state == 2) {
-        state = 0;
+	    static int index;
+	    static edict_t *victim_edict;
+	    state = 0;
 
         victim_edict = INDEXENT(victim_index);
 
@@ -781,7 +778,7 @@ void BotClient_Valve_DeathMsg(void *p, int bot_index) {
         if (index != -1) {
             if ((killer_index == 0) || (killer_index == victim_index)) {
                 // bot killed by world (worldspawn) or bot killed self...
-                bots[index].killer_edict = NULL;
+                bots[index].killer_edict = nullptr;
             } else {
                 // store edict of player that killed this bot...
                 bots[index].killer_edict = INDEXENT(killer_index);
@@ -813,41 +810,37 @@ void BotClient_Valve_ScreenFade(void *p, int bot_index) {
     static int state = 0;        // current state machine state
     static int duration;
     static int hold_time;
-    static int fade_flags;
-    float length;
 
     if (state == 0) {
         state++;
-        duration = *(int *) p;
+        duration = *static_cast<int*>(p);
     } else if (state == 1) {
         state++;
-        hold_time = *(int *) p;
+        hold_time = *static_cast<int*>(p);
     } else if (state == 2) {
-        state++;
-        fade_flags = *(int *) p;
+	    static int fade_flags;
+	    state++;
+        fade_flags = *static_cast<int*>(p);
     } else if (state == 6) {
         state = 0;
 
-        length = (duration + hold_time) / 4096.0;
+        float length = (static_cast<float>(duration + hold_time)) / 4096.0f;
         int iDevide = bots[bot_index].bot_skill;
-        if (iDevide < 1)
-            iDevide = 1;
+        iDevide = std::max(iDevide, 1);
 
-        length -= ((10 / iDevide) * 0.5);
+        length -= (static_cast<float>(10) / static_cast<float>(iDevide) * 0.5f);
 
         bots[bot_index].fBlindedTime = gpGlobals->time + length;
 
-        // Get pointer and do some radio stuff here - Added by Stefan
-        cBot *pBot;
-        pBot = &bots[bot_index];
+        cBot* pBot = &bots[bot_index];
 
-        int iCurrentNode = NodeMachine.getClosestNode(pBot->pEdict->v.origin, NODE_ZONE, pBot->pEdict);
-        int iCoverNode = NodeMachine.node_cover(iCurrentNode, iCurrentNode, pBot->pEdict);
+        const int iCurrentNode = NodeMachine.getClosestNode(pBot->pEdict->v.origin, NODE_ZONE, pBot->pEdict);
+        const int iCoverNode = NodeMachine.node_cover(iCurrentNode, iCurrentNode, pBot->pEdict);
 
         if (iCoverNode > -1) {
-//         pBot->forgetPath();
-//         pBot->rprint("Setting goal from screenfade");
-//         pBot->setGoalNode(iCoverNode);
+		// pBot->forgetPath();
+		// pBot->rprint("Setting goal from screenfade");
+		// pBot->setGoalNode(iCoverNode);
             pBot->rprint("TODO: Make bot react upon screenfade/flashbang\n");
         }
 
@@ -862,7 +855,8 @@ void BotClient_CS_ScreenFade(void *p, int bot_index) {
     BotClient_Valve_ScreenFade(p, bot_index);
 }
 
-void BotClient_Gearbox_ScreenFade(void *p, int bot_index) {
+// Not required? [APG]RoboCop[CL]
+/*void BotClient_Gearbox_ScreenFade(void* p, int bot_index) {
     //DebugOut("bot_client: BotClient_Gearbox_ScreenFade()\n");
     // this is just like the Valve ScreenFade message
     BotClient_Valve_ScreenFade(p, bot_index);
@@ -872,7 +866,7 @@ void BotClient_FLF_ScreenFade(void *p, int bot_index) {
     //DebugOut("bot_client: BotClient_FLF_ScreenFade()\n");
     // this is just like the Valve ScreenFade message
     BotClient_Valve_ScreenFade(p, bot_index);
-}
+}*/
 
 // STEFAN
 // This message gets sent for HLTV, according to Alfred (Valve) also
@@ -899,7 +893,7 @@ void BotClient_CS_HLTV(void *p, int bot_index) {
      */
 
     if (state == 0) {
-        players = *(int *) p;     // check the byte
+        players = *static_cast<int*>(p);     // check the byte
         state++;
     } else if (state == 1) {
         // I check here on purpose. Multiple HLTV messages get sent within the game,

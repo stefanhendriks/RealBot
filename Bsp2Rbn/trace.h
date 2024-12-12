@@ -15,7 +15,7 @@
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 //
 // See the GNU General Public License for more details at:
 // http://www.gnu.org/copyleft/gpl.html
@@ -29,18 +29,17 @@
 
 typedef struct
 {
-   bool     allsolid;   /* if true, plane is not valid */
-   bool     startsolid; /* if true, the initial point was in a solid area */
-   float    fraction;   /* time completed, 1.0 = didn't hit anything */
-   vec3_t   hitpos;     /* surface hit position (in solid) */
-   vec3_t   endpos;     /* final position (not in solid) */
-   int      contents;   /* contents of endpos */
+	bool     allsolid;   /* if true, plane is not valid */
+	bool     startsolid; /* if true, the initial point was in a solid area */
+	float    fraction;   /* time completed, 1.0 = didn't hit anything */
+	vec3_t   hitpos;     /* surface hit position (in solid) */
+	vec3_t   endpos;     /* final position (not in solid) */
+	int      contents;   /* contents of endpos */
 } botman_trace_t;
 
 int BotmanPointContents(const int nodenum, const vec3_t coord);
-int BotmanPointContentsInHull(const int hullNumber,const vec3_t coord);
-void BotmanTraceLine (vec3_t start, vec3_t end, botman_trace_t *trace);
-dface_t *TraceLineFindFace(vec3_t start, botman_trace_t *tr);
+int BotmanPointContentsInHull(const int hullNumber, const vec3_t coord);
+void BotmanTraceLine(vec3_t start, vec3_t end, botman_trace_t* trace);
+dface_t* TraceLineFindFace(vec3_t start, botman_trace_t* tr);
 
 #endif
-

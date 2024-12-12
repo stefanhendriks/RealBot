@@ -57,7 +57,7 @@
 
 // weapon ID values for Counter-Strike
 #define CS_WEAPON_P228           1
-#define CS_WEAPON_UNKNOWN2       2
+#define CS_WEAPON_SHIELD         2
 #define CS_WEAPON_SCOUT          3
 #define CS_WEAPON_HEGRENADE      4
 #define CS_WEAPON_XM1014         5
@@ -91,7 +91,7 @@
 #define CS_DEFUSEKIT		    98      // old value was 99, same as SHIELD -> Bug??
 
 // NOT CONFIRMED
-#define CS_WEAPON_SHIELD        99      // Not used for detecting, only for
+//#define CS_WEAPON_SHIELD        99      // Not used for detecting, only for
 // bot.dll
 
 // Woah, i rule! :D, figured out all Earth Special Forces Weapon ID's..

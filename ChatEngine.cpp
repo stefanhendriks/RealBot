@@ -28,12 +28,11 @@
   **/
 
 // Chatting Engine
-#include <string.h>
-#include <ctype.h>
+#include <cstring>
+#include <cctype>
 // Some tests by EVYNCKE
 #include <string>
 #include <algorithm>
-#include <cctype>
 
 #include <extdll.h>
 #include <dllapi.h>
@@ -48,30 +47,30 @@
 
 #include "ChatEngine.h"
 
-extern edict_t *pHostEdict;
+extern edict_t* pHostEdict;
 extern cGame Game;
 extern cBot bots[32];
 
 // initialize all
-void
-cChatEngine::init() {
+void cChatEngine::init() {
     // clear all blocks
-    for (int iB = 0; iB < MAX_BLOCKS; iB++) {
-        for (int iBs = 0; iBs < 50; iBs++)
-            ReplyBlock[iB].sentence[iBs][0] = '\0';
+    for (tReplyBlock& iB : ReplyBlock)
+    {
+        for (char(&iBs)[128] : iB.sentence)
+            iBs[0] = '\0';
 
-        for (int iBw = 0; iBw < 10; iBw++)
-            ReplyBlock[iB].word[iBw][0] = '\0';
+        for (char(&iBw)[25] : iB.word)
+            iBw[0] = '\0';
 
-        ReplyBlock[iB].bUsed = false;
+        iB.bUsed = false;
     }
 
     iLastBlock = -1;
     iLastSentence = -1;
 
     // init sentence
-    memset(sentence, 0, sizeof(sentence));
-    memset(sender, 0, sizeof(sender));
+    std::memset(sentence, 0, sizeof(sentence));
+    std::memset(sender, 0, sizeof(sender));
 }
 
 // load
@@ -84,7 +83,7 @@ void cChatEngine::initAndload() {
 
 // think
 void cChatEngine::think() {
-    if (fThinkTimer + 1.0 > gpGlobals->time) return; // not time yet to think
+    if (fThinkTimer + 1.0f > gpGlobals->time) return; // not time yet to think
 
     // decrease over time to avoid flooding
     if (Game.iProducedSentences > 1) {
@@ -96,22 +95,18 @@ void cChatEngine::think() {
 
     // 29/08/2019 Stefan: by using string compare on the name of the sender (ie sender[] is the name) we retrieve
     // the edict pointer
-    edict_t *pSender = NULL;
-    int i;
-    for (i = 1; i <= gpGlobals->maxClients; i++) {
-        edict_t *pPlayer = INDEXENT(i);
+    edict_t* pSender = nullptr;
+    for (int i = 1; i <= gpGlobals->maxClients; i++) {
+        edict_t* pPlayer = INDEXENT(i);
 
-        if (pPlayer && (!pPlayer->free)) {
-            char name[30], name2[30];
-            // clear
-            memset(name, 0, sizeof(name));
-            memset(name2, 0, sizeof(name2));
+        if (pPlayer && !pPlayer->free) {
+            char name[30] = {}, name2[30] = {};
 
             // copy
-            strcpy(name, STRING(pPlayer->v.netname));
-            strcpy(name2, sender);
+            std::strcpy(name, STRING(pPlayer->v.netname));
+            std::strcpy(name2, sender);
 
-            if (strcmp(name, name2) == 0) {
+            if (std::strcmp(name, name2) == 0) {
                 pSender = pPlayer;
                 break;
             }
@@ -120,21 +115,20 @@ void cChatEngine::think() {
     // Edict pointer established
 
     // Scan the message so we know in what block we should be to reply:
-    char word[20];
-    memset(word, 0, sizeof(word));
+    char word[20] = {};
 
     int c = 0;
     int wc = 0;
 
-    int sentenceLength = strlen(sentence);
+    const int sentenceLength = static_cast<int>(std::strlen(sentence));
 
     // When length is not valid, get out.
     // 29/08/2019: Stefan, so let me get this. We declare the sentence to be max 128 chars, but then we still could end up with a longer one?
     // how did we allow for this to happen?
-    if (sentenceLength == 0 || sentenceLength >= (MAX_SENTENCE_LENGTH-1)) {
+    if (sentenceLength == 0 || sentenceLength >= MAX_SENTENCE_LENGTH - 1) {
         // clear out sentence and sender
-        memset(sentence, 0, sizeof(sentence));
-        memset(sender, 0, sizeof(sender));
+        std::memset(sentence, 0, sizeof(sentence));
+        std::memset(sender, 0, sizeof(sender));
 
         // reset timer
         fThinkTimer = gpGlobals->time;
@@ -145,8 +139,9 @@ void cChatEngine::think() {
     int WordBlockScore[MAX_BLOCKS];
 
     // Init, none of the block has a score yet (set to -1)
-    for (int wbs = 0; wbs < MAX_BLOCKS; wbs++) {
-        WordBlockScore[wbs] = -1;
+    for (int& wbs : WordBlockScore)
+    {
+        wbs = -1;
     }
 
     // loop over the sentence character by character
@@ -164,28 +159,30 @@ void cChatEngine::think() {
         if (sentence[c] == ' ' || sentence[c] == '\n' ||
             sentence[c] == '.' || sentence[c] == '?' ||
             sentence[c] == '!' || c == sentenceLength) {
-            // Now find the word and add up scors on the proper score blocks.
+            // Now find the word and add up scores on the proper score blocks.
 
             if (c == sentenceLength)
                 word[wc] = sentence[c];
 
             // not a good word (too small)
-            if (strlen(word) <= 0) {
+            if (std::strlen(word) <= 0) {
                 //SERVER_PRINT("This is not a good word!\n");
-            } else {
+            }
+            else {
                 for (int iB = 0; iB < MAX_BLOCKS; iB++) {
                     if (ReplyBlock[iB].bUsed) {
-                        for (int iBw = 0; iBw < 10; iBw++) {
+                        for (const char(&iBw)[25] : ReplyBlock[iB].word)
+                        {
                             // skip any word in the reply block that is not valid
-                            if (ReplyBlock[iB].word[iBw][0] == '\0')
+                            if (iBw[0] == '\0')
                                 continue; // not filled in
 
-                            if (strlen(ReplyBlock[iB].word[iBw]) <= 0)
+                            if (std::strlen(iBw) <= 0)
                                 continue; // not long enough (a space?)
 
                             // 03/07/04
                             // add score to matching word (evy: ignoring case)
-                            if (strcmpi(ReplyBlock[iB].word[iBw], word) == 0)
+                            if (std::strcmp(iBw, word) == 0)
                                 WordBlockScore[iB]++;
                         }       // all words in this block
                     }          // any used block
@@ -195,7 +192,7 @@ void cChatEngine::think() {
             // clear out entire word.
             //for (int cw=0; cw < 20; cw++)
             //      word[cw] = '\0';
-            memset(word, 0, sizeof(word));
+            std::memset(word, 0, sizeof(word));
 
             wc = 0;          // reset WC position (start writing 'word[WC]' at 0 again)
             c++;             // next position in sentence
@@ -232,34 +229,30 @@ void cChatEngine::think() {
         int iMax = -1;
 
         // now choose a sentence to reply with
-        for (int iS = 0; iS < 50; iS++) {
+        for (const char(&iS)[128] : ReplyBlock[iTheBlock].sentence)
+        {
             // Find max sentences of this reply block
-            if (ReplyBlock[iTheBlock].sentence[iS][0] != '\0')
+            if (iS[0] != '\0')
                 iMax++;
         }
 
         // loop through all bots:
         for (int i = 1; i <= gpGlobals->maxClients; i++) {
-            edict_t *pPlayer = INDEXENT(i);
+            edict_t* pPlayer = INDEXENT(i);
 
             // skip invalid players and skip self (i.e. this bot)
-            if ((pPlayer) && (!pPlayer->free) && pSender != pPlayer) {
-
-                // only reply to the living when alive, and otherwise
-                bool bSenderAlive = false;
-                bool bPlayerAlive = false;
-
-                bSenderAlive = IsAlive(pSender);      // CRASH : it sometimes crashes here
-                bPlayerAlive = IsAlive(pPlayer);
+            if (pPlayer && !pPlayer->free && pSender != pPlayer) {
+                const bool bSenderAlive = IsAlive(pSender);      // CRASH : it sometimes crashes here
+                const bool bPlayerAlive = IsAlive(pPlayer);
 
                 if (bSenderAlive != bPlayerAlive)
                     continue;
 
-                cBot *pBotPointer = UTIL_GetBotPointer(pPlayer);
+                cBot* pBotPointer = UTIL_GetBotPointer(pPlayer);
 
-                if (pBotPointer != NULL)
+                if (pBotPointer != nullptr)
                     if (RANDOM_LONG(0, 100) <
-                        (pBotPointer->ipChatRate + 25)) {
+                        pBotPointer->ipChatRate + 25) {
                         // When we have at least 1 sentence...
                         if (iMax > -1) {
                             // choose randomly a reply
@@ -279,26 +272,26 @@ void cChatEngine::think() {
                             // the_c is choosen, it is the sentence we reply with.
                             // do a check if its valid:
                             if (ReplyBlock[iTheBlock].
-                                    sentence[the_c][0] != '\0') {
+                                sentence[the_c][0] != '\0') {
 
                                 // chSentence is eventually what the bot will say.
                                 char chSentence[128];
                                 char temp[80];
 
-                                memset(chSentence, 0, sizeof(chSentence));
-                                memset(temp, 0, sizeof(temp));
+                                std::memset(chSentence, 0, sizeof(chSentence));
+                                std::memset(temp, 0, sizeof(temp));
 
                                 // get character position
-                                char *name_pos =
-                                        strstr(ReplyBlock[iTheBlock].
-                                                sentence[the_c], "%n");
+                                const char* name_pos =
+                                    std::strstr(ReplyBlock[iTheBlock].
+                                        sentence[the_c], "%n");
 
                                 // when name_pos var is found, fill it in.
-                                if (name_pos != NULL) {
+                                if (name_pos != nullptr) {
                                     // when name is in this one:
                                     int name_offset =
-                                            name_pos -
-                                            ReplyBlock[iTheBlock].sentence[the_c];
+                                        name_pos -
+                                        ReplyBlock[iTheBlock].sentence[the_c];
                                     name_offset--;
 
                                     // copy every character till name_offset
@@ -306,39 +299,35 @@ void cChatEngine::think() {
                                     for (nC = 0; nC < name_offset; nC++) {
                                         //chSentence[nC] = ReplyBlock[iTheBlock].sentence[the_c][nC];
                                         temp[nC] =
-                                                ReplyBlock[iTheBlock].
-                                                        sentence[the_c][nC];
+                                            ReplyBlock[iTheBlock].
+                                            sentence[the_c][nC];
                                     }
 
                                     temp[nC] = ' ';
 
                                     // copy senders name to chSentence
-                                    strcat(temp, sender);
-
-                                    // From here us 'tc' to keep track of chSentence and use
-                                    // nC to keep reading from ReplyBlock
-                                    int tc = nC;
+                                    std::strcat(temp, sender);
 
                                     // Skip %n part in ReplyBlock
                                     nC = name_offset + 3;
 
                                     // we just copied a name to chSentence
                                     // set our cursor after the name now (name length + 1)
-                                    tc = strlen(temp);
+                                    int tc = static_cast<int>(std::strlen(temp));
 
                                     // now finish the sentence
                                     // get entire length of ReplyBlock and go until we reach the end
-                                    int length =
-                                            strlen(ReplyBlock[iTheBlock].
-                                                    sentence[the_c]);
+                                    const int length =
+                                        static_cast<int>(std::strlen(ReplyBlock[iTheBlock].
+                                            sentence[the_c]));
 
 
                                     // for every nC , read character from ReplyBlock
                                     for (; nC <= length; nC++) {
                                         // ... and copy it into chSentence
                                         temp[tc] =
-                                                ReplyBlock[iTheBlock].
-                                                        sentence[the_c][nC];
+                                            ReplyBlock[iTheBlock].
+                                            sentence[the_c][nC];
                                         //char tmsg[80];
                                         //sprintf(tmsg,"Copying char %c , tc = %d, nC = %d\n", temp[tc], tc, nC);
                                         //SERVER_PRINT(tmsg);
@@ -349,13 +338,12 @@ void cChatEngine::think() {
                                     // terminate
                                     temp[tc] = '\n';
 
-                                    sprintf(chSentence, "%s \n", temp);
+                                    snprintf(chSentence, sizeof(chSentence), "%s \n", temp);
                                 }
-                                    // when no name pos is found, we just copy the string and say that (works ok)
+                                // when no name pos is found, we just copy the string and say that (works ok)
                                 else
-                                    sprintf(chSentence, "%s \n",
-                                            ReplyBlock[iTheBlock].
-                                                    sentence[the_c]);
+                                    snprintf(chSentence, sizeof(chSentence), "%s \n",
+                                        ReplyBlock[iTheBlock].sentence[the_c]);
 
                                 // reply:
                                 pBotPointer->PrepareChat(chSentence);
@@ -374,40 +362,55 @@ void cChatEngine::think() {
 
     }
     // clear sentence and such
-    memset(sentence, 0, sizeof(sentence));
-    memset(sender, 0, sizeof(sender));
+    std::memset(sentence, 0, sizeof(sentence));
+    std::memset(sender, 0, sizeof(sender));
 
 
-    fThinkTimer = gpGlobals->time + RANDOM_FLOAT(0.0, 0.5);
+    fThinkTimer = gpGlobals->time + RANDOM_FLOAT(0.0f, 0.5f);
 }
 
-//
-void cChatEngine::set_sentence(char csender[30], char csentence[128]) {
+void cChatEngine::handle_sentence() {
+    // Define a constant for the chat rate threshold
+    constexpr int CHAT_RATE_THRESHOLD = 25;
 
-    if (sender[0] == ' ' || sender[0] == '\0') {
-        //      SERVER_PRINT("Sender & sentence set.\nSender=");
-        //      SERVER_PRINT(csender);
-        //      SERVER_PRINT("\nSentence=");
-        //      SERVER_PRINT(csentence);
-        //      SERVER_PRINT("--\n");
+    // Check if there is a sentence to process
+    if (sentence[0] == '\0') {
+        return;
+    }
 
-        strcpy(sender, csender);
-#ifdef _WIN32
+    // Loop through all clients
+    for (int i = 1; i <= gpGlobals->maxClients; i++) {
+        edict_t* pPlayer = INDEXENT(i);
 
-        _strupr(csentence);
-        // #elseif did not compile in MSVC - stefan (26/04/04)
-#else
-        //for linux by ok:
-        //further changed back by evyncke as these are normal string not CString
-        //Hence, hardcoding the strupr inline...
-        char *pString;
-        pString = csentence;
-        while (*pString) {
-            *pString = toupper(*pString);
-            pString++;
+        // Skip invalid players
+        if (pPlayer && !pPlayer->free) {
+            cBot* pBotPointer = UTIL_GetBotPointer(pPlayer);
+
+            // Check if bot pointer is valid and decide to prepare chat
+            if (pBotPointer != nullptr && RANDOM_LONG(0, 100) < pBotPointer->ipChatRate + CHAT_RATE_THRESHOLD) {
+                pBotPointer->PrepareChat(sentence);
+            }
         }
+    }
+
+    // Clear sentence and sender buffers
+    std::memset(sentence, 0, sizeof(sentence));
+    std::memset(sender, 0, sizeof(sender));
+
+    // Set the think timer
+    fThinkTimer = gpGlobals->time + RANDOM_FLOAT(0.0f, 0.5f);
+}
+
+
+void cChatEngine::set_sentence(char csender[MAX_NAME_LENGTH], char csentence[MAX_SENTENCE_LENGTH]) {
+    if (sender[0] == ' ' || sender[0] == '\0') {
+        std::strcpy(sender, csender);
+#ifdef _WIN32
+        _strupr(csentence);
+#else
+        std::transform(csentence, csentence + std::strlen(csentence), csentence, ::toupper);
 #endif
-        strcpy(sentence, csentence);
+        std::strcpy(sentence, csentence);
     }
 }
 

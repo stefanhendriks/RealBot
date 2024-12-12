@@ -56,6 +56,10 @@
 #define NOMCX
 #define NOIME
 #include "windows.h"
+
+#undef max
+#undef min
+
 #else // _WIN32
 #ifndef FALSE
 #define FALSE 0
@@ -69,24 +73,28 @@ typedef int BOOL;
 #define MAX_PATH PATH_MAX
 #include <limits.h>
 #include <stdarg.h>
-#include <string.h> // memset 
+#include <cstring> // memset
+//Fix for GCC 8 - [APG]RoboCop[CL]
 #include <algorithm>
-using namespace std;
-#ifndef min
-#define min(a,b)  (((a) < (b)) ? (a) : (b))
-#endif
+
 #ifndef max
-#define max(a,b)  (((a) > (b)) ? (a) : (b))
+#define max(a,b) (((a) > (b)) ? (a) : (b))
 #endif
-#ifndef _vsnprintf
+
+#ifndef min
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
+#undef max
+#undef min
+
 #define _vsnprintf(a,b,c,d) vsnprintf(a,b,c,d)
-#endif
 #endif //_WIN32
 
 // Misc C-runtime library headers
-#include "stdio.h"
-#include "stdlib.h"
-#include "math.h"
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 
 // Header file containing definition of globalvars_t and entvars_t
 typedef unsigned int func_t;					//

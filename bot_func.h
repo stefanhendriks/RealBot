@@ -33,11 +33,22 @@
 //prototypes of bot functions...
 void BotThink(cBot * pBot);
 
+float fixAngle(float angle);
+
 void botFixIdealPitch(edict_t * pEdict);
 void botFixIdealYaw(edict_t * pEdict);
 bool traceLine(const Vector& v_source, const Vector& v_dest, const edict_t* pEdict, TraceResult& tr);
 bool BotCanJumpUp(const cBot * pBot);
 bool BotCanDuckUnder(const cBot * pBot);
+
+bool isBotNearby(const cBot* pBot, float radius);
+void adjustBotAngle(const cBot* pBot, float angle);
+void avoidClustering(const cBot* pBot);
+bool isPathBlocked(const cBot* pBot, const Vector& v_dest);
+void adjustPathIfBlocked(const cBot* pBot);
+bool performTrace(const Vector& v_source, const Vector& v_dest, edict_t* pEntity, TraceResult& tr);
+bool isPathClear(const cBot* pBot, const Vector& v_dest);
+void BotNavigate(const cBot* pBot);
 
 bool EntityIsVisible(edict_t * pEntity, const Vector& dest);
 

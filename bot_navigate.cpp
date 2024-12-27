@@ -43,6 +43,8 @@
 extern int mod_id;
 extern edict_t* pHostEdict;
 
+constexpr float TURN_ANGLE = 75.0f; // Degrees to turn when avoiding obstacles
+constexpr float MOVE_DISTANCE = 24.0f; // Distance to move forward
 constexpr std::uint8_t SCAN_RADIUS = 60; // Radius to scan to prevent blocking with players
 
 /**
@@ -50,7 +52,7 @@ constexpr std::uint8_t SCAN_RADIUS = 60; // Radius to scan to prevent blocking w
  * @param angle
  * @return
  */
-float fixAngle(float angle) {
+float fixAngle(const float angle) {
     if (angle > 180.0f) return angle - 360.0f;
     if (angle < -180.0f) return angle + 360.0f;
     return angle;
@@ -298,4 +300,102 @@ bool BotCanDuckUnder(const cBot* pBot) {
         return false;
 
     return true;
+}
+
+bool isBotNearby(const cBot* pBot, const float radius) {
+    if (!pBot || !pBot->pEdict) {
+        return false; // Validate input
+    }
+
+    for (int i = 0; i < gpGlobals->maxClients; ++i) {
+        edict_t* pPlayer = INDEXENT(i + 1);
+
+        if (pPlayer && !pPlayer->free && pPlayer != pBot->pEdict) {
+            float distance = (pPlayer->v.origin - pBot->pEdict->v.origin).Length();
+            if (distance < radius) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+void adjustBotAngle(const cBot* pBot, const float angle) {
+    if (!pBot || !pBot->pEdict) {
+        return;
+    }
+
+    pBot->pEdict->v.v_angle.y += angle;
+    UTIL_MakeVectors(pBot->pEdict->v.v_angle);
+}
+
+void avoidClustering(const cBot* pBot) {
+    if (!pBot) {
+        return;
+    }
+
+    if (isBotNearby(pBot, SCAN_RADIUS)) {
+        adjustBotAngle(pBot, TURN_ANGLE);
+    }
+}
+
+bool isPathBlocked(const cBot* pBot, const Vector& v_dest) {
+    if (!pBot || !pBot->pEdict) {
+        return true; // Assume blocked if input is invalid
+    }
+
+    TraceResult tr;
+    const Vector v_source = pBot->pEdict->v.origin;
+
+    UTIL_TraceLine(v_source, v_dest, dont_ignore_monsters, pBot->pEdict->v.pContainingEntity, &tr);
+
+	return tr.flFraction < 1.0f;
+}
+
+void adjustPathIfBlocked(const cBot* pBot) {
+    if (!pBot) {
+        return;
+    }
+
+    Vector v_dest = pBot->pEdict->v.origin + gpGlobals->v_forward * MOVE_DISTANCE;
+
+    if (isPathBlocked(pBot, v_dest)) {
+        adjustBotAngle(pBot, TURN_ANGLE);
+    }
+}
+
+bool performTrace(const Vector& v_source, const Vector& v_dest, edict_t* pEntity, TraceResult& tr) {
+    UTIL_TraceLine(v_source, v_dest, dont_ignore_monsters, pEntity, &tr);
+
+    return tr.flFraction >= 1.0f;
+}
+
+bool isPathClear(const cBot* pBot, const Vector& v_dest) {
+    if (!pBot || !pBot->pEdict) {
+        return false; // Invalid input, assume path is not clear
+    }
+    TraceResult tr;
+
+    return performTrace(pBot->pEdict->v.origin, v_dest, pBot->pEdict->v.pContainingEntity, tr);
+}
+
+void BotNavigate(const cBot* pBot) {
+    if (!pBot) {
+        return;
+    }
+
+    // Avoid clustering
+    avoidClustering(pBot);
+
+    // Adjust path if blocked
+    adjustPathIfBlocked(pBot);
+
+    // Check if the path is clear before moving
+    Vector v_dest = pBot->pEdict->v.origin + gpGlobals->v_forward * MOVE_DISTANCE;
+
+    if (!isPathBlocked(pBot, v_dest)) {
+        // Move the bot
+        pBot->pEdict->v.origin = v_dest;
+    }
 }

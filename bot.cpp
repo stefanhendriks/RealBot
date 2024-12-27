@@ -4404,6 +4404,15 @@ bool cBot::isJumping() {
 
 // Experimental DuckJump added for the NodeMachine [APG]RoboCop[CL]
 //
+void cBot::doDuckJump(const Vector& vector) {
+	rprint_trace("doDuckJump", "With vector");
+	// stay focussed with body and head to this vector
+	this->vHead = vector;
+	this->vBody = vector;
+
+	doDuckJump();
+}
+
 void cBot::doDuckJump(){
 	rprint_trace("doDuckJump", "no vector");
 	UTIL_BotPressKey(this, IN_DUCK); 

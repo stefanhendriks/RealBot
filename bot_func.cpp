@@ -1197,7 +1197,7 @@ bool BOT_DecideTakeCover(cBot *pBot) {
 // logs into a file
 void rblog(const char* txt) {
     // output to stdout
-    printf("%s", txt);
+	//printf("%s", txt); // Excessive log spewing [APG]RoboCop[CL]
 
     // and to reallog file
     if (fpRblog) {

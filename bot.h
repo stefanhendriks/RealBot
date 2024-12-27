@@ -572,6 +572,7 @@ public:
     bool isJumping();
 
     // Experimental DuckJump added for the NodeMachine [APG]RoboCop[CL]
+    void doDuckJump(const Vector& vector);
     void doDuckJump(); 
     bool isDuckJumping();
 

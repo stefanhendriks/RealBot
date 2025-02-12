@@ -1,0 +1,159 @@
+# AMBuildScript for RealBot, written by Anonymous Player
+# vim: set sts=4 ts=8 sw=4 tw=99 et ft=python:
+import os, sys
+
+builder.cxx = builder.DetectCxx(target_arch = 'x86')
+
+# Include search paths
+include_paths = [
+  os.path.join(builder.currentSourcePath, 'dependencies', 'metamod-hl1', 'metamod'),
+  os.path.join(builder.currentSourcePath, 'dependencies', 'hlsdk', 'common'),
+  os.path.join(builder.currentSourcePath, 'dependencies', 'hlsdk', 'public'),
+  os.path.join(builder.currentSourcePath, 'dependencies', 'hlsdk', 'dlls'),
+  os.path.join(builder.currentSourcePath, 'dependencies', 'hlsdk', 'engine'),
+  os.path.join(builder.currentSourcePath, 'dependencies', 'hlsdk', 'game_shared'),
+  os.path.join(builder.currentSourcePath, 'dependencies', 'hlsdk', 'pm_shared'),
+]
+
+# Compiler setup
+builder.cxx.defines += [
+    'HAVE_STDINT_H',
+  ]
+
+if builder.cxx.like('gcc'):
+  builder.cxx.defines += [
+	'stricmp=strcasecmp',
+	'strcmpi=strcasecmp'
+  ]
+  
+  builder.cxx.c_only_flags += ['-std=gnu99']
+if builder.cxx.target.platform == 'linux':
+  # Linux defines
+  builder.cxx.defines += ['_LINUX', 'POSIX', 'LINUX', 'linux']
+  # Linux compiler C flags
+  builder.cxx.cflags += [
+    '-mtune=generic',
+    '-pipe',
+    '-fPIC',
+    '-msse4.2',
+    '-mfpmath=sse',
+    '-fno-strict-aliasing',
+    '-Wall',
+    '-Werror',
+    '-Wno-uninitialized',
+    '-Wno-unused',
+    '-Wno-switch',
+    '-Wno-format',
+    '-Wno-format-security',
+    '-Wno-unknown-attributes',
+    '-Wno-logical-op-parentheses',
+    '-Wno-return-stack-address',
+    '-m32',
+  ]
+  # Linux compiler C++ flags
+  builder.cxx.cxxflags += [
+    '-Wno-invalid-offsetof',
+    '-Wno-write-strings',
+    '-std=c++17',
+  ]
+  # Linux linker flags
+  builder.cxx.linkflags += ['-m32', '-ldl', '-lm']
+elif builder.cxx.target.platform == 'windows':
+  # Windows defines
+  builder.cxx.defines += [
+    '_CRT_SECURE_NO_DEPRECATE',
+    '_CRT_SECURE_NO_WARNINGS',
+    '_CRT_NONSTDC_NO_DEPRECATE',
+    'NOMINMAX',
+    'WIN32',
+    '_WINDOWS'
+  ]
+  # Windows compiler C flags
+  builder.cxx.cflags += []
+  # Windows compiler C++ flags
+  builder.cxx.cxxflags += [
+	'/std:c++17',
+	'/arch:SSE2',
+    '/fp:precise',
+	'/Qspectre',
+	'/EHsc'
+  ]
+  # Windows linker flags
+  builder.cxx.linkflags += [
+    '/EXPORT:GiveFnptrsToDll=_GiveFnptrsToDll@8,@1',
+    '/SECTION:.data,RW',
+    '/MACHINE:X86'
+  ]
+
+# Compiler options for optimization ( --enable-optimize )
+if builder.options.optimize == '1':
+  # Shared optimization definitions
+  builder.cxx.defines += ['NDEBUG']
+  if builder.cxx.target.platform == 'linux':
+    # Linux optimization flags
+    builder.cxx.cflags += ['-O3']
+  elif builder.cxx.target.platform == 'windows':
+    # Windows optimization flags - /Ob3 needs to be after /Ox, enables aggressive function inling -caxanga334
+    builder.cxx.cflags += ['/Ox', '/Zo', '/Ob3', '/GF']
+    # Windows optimization link flags
+    builder.cxx.linkflags += ['/OPT:ICF', '/OPT:REF']
+	# This needs to be after our optimization flags which could otherwise disable it.
+    builder.cxx.cflags += ['/Oy-']
+
+# Compiler options for debugging ( --enable-debug )
+if builder.options.debug == '1':
+  # Shared debug definitions
+  builder.cxx.defines += ['DEBUG', '_DEBUG']
+  if builder.cxx.target.platform == 'linux':
+    # Linux debug flags
+    builder.cxx.cflags += ['-g3', '-O0']
+  elif builder.cxx.target.platform == 'windows':
+    # Windows debug flags
+    builder.cxx.cflags += ['/Od', '/RTC1', '/MTd']
+    # Windows debug link flags
+    builder.cxx.linkflags += ['/NODEFAULTLIB:libcmt']
+
+# Handle --enable-static-lib and --enable-shared-lib
+if builder.cxx.target.platform == 'linux':
+  if builder.options.staticlib == '1':
+    builder.cxx.linkflags += [
+      '-static-libgcc',
+      '-static-libstdc++'
+    ]
+  elif builder.options.sharedlib == '1':
+    builder.cxx.linkflags += [
+      '-shared-libgcc',
+    ]
+
+library = builder.cxx.Library('realbot_mm')
+
+library.compiler.includes += include_paths
+
+library.sources += [
+  'bot.cpp',
+  'bot_buycode.cpp',
+  'bot_client.cpp',
+  'bot_func.cpp',
+  'bot_navigate.cpp',
+  'build.cpp',
+  'ChatEngine.cpp',
+  'dll.cpp',
+  'engine.cpp',
+  'game.cpp',
+  'IniParser.cpp',
+  'NodeMachine.cpp',
+  'util.cpp',
+]
+
+#builder.RunBuildScripts(
+#  [
+#    'Bsp2Rbn/AMBuilder',
+#  ],
+#  #{ 'AMXX': AMXX }
+#)
+
+#
+# Run scripts, add binaries
+#
+
+builder.Add(library)

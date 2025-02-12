@@ -30,6 +30,9 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
+#include <const.h>
+#include <eiface.h>
+
 // engine prototypes (from engine\eiface.h)...
 int pfnPrecacheModel(char *s);
 int pfnPrecacheSound(char *s);
@@ -56,7 +59,7 @@ edict_t *pfnEntitiesInPVS(edict_t * pplayer);
 void pfnMakeVectors(const float *rgflVector);
 void pfnAngleVectors(const float *rgflVector, float *forward, float *right,
                      float *up);
-edict_t *pfnCreateEntity(void);
+edict_t *pfnCreateEntity();
 void pfnRemoveEntity(edict_t * e);
 edict_t *pfnCreateNamedEntity(int className);
 void pfnMakeStatic(edict_t * ent);
@@ -86,7 +89,7 @@ void pfnTraceSphere(const float *v1, const float *v2, int fNoMonsters,
                     float radius, edict_t * pentToSkip, TraceResult * ptr);
 void pfnGetAimVector(edict_t * ent, float speed, float *rgflReturn);
 void pfnServerCommand(char *str);
-void pfnServerExecute(void);
+void pfnServerExecute();
 void pfnClientCommand(edict_t * pEdict, const char *szFmt, ...);
 void pfnParticleEffect(const float *org, const float *dir, float color,
                        float count);
@@ -95,7 +98,7 @@ int pfnDecalIndex(const char *name);
 int pfnPointContents(const float *rgflVector);
 void pfnMessageBegin(int msg_dest, int msg_type, const float *pOrigin,
                      edict_t * edict);
-void pfnMessageEnd(void);
+void pfnMessageEnd();
 void pfnWriteByte(int iValue);
 void pfnWriteChar(int iValue);
 void pfnWriteShort(int iValue);
@@ -136,9 +139,9 @@ const char *pfnNameForFunction(uint32 function);
 void pfnClientPrintf(edict_t * pEdict, PRINT_TYPE ptype,
                      const char *szMsg);
 void pfnServerPrint(const char *szMsg);
-const char *pfnCmd_Args(void);
+const char *pfnCmd_Args();
 const char *pfnCmd_Argv(int argc);
-int pfnCmd_Argc(void);
+int pfnCmd_Argc();
 void pfnGetAttachment(const edict_t * pEdict, int iAttachment,
                       float *rgflOrigin, float *rgflAngles);
 void pfnCRC32_Init(CRC32_t * pulCRC);
@@ -148,7 +151,7 @@ CRC32_t pfnCRC32_Final(CRC32_t pulCRC);
 int32 pfnRandomLong(int32 lLow, int32 lHigh);
 float pfnRandomFloat(float flLow, float flHigh);
 void pfnSetView(const edict_t * pClient, const edict_t * pViewent);
-float pfnTime(void);
+float pfnTime();
 void pfnCrosshairAngle(const edict_t * pClient, float pitch, float yaw);
 byte *pfnLoadFileForMe(char *filename, int *pLength);
 void pfnFreeFile(void *buffer);
@@ -164,7 +167,7 @@ edict_t *pfnCreateFakeClient(const char *netname);
 void pfnRunPlayerMove(edict_t * fakeclient, const float *viewangles,
                       float forwardmove, float sidemove, float upmove,
                       unsigned short buttons, byte impulse, byte msec);
-int pfnNumberOfEntities(void);
+int pfnNumberOfEntities();
 char *pfnGetInfoKeyBuffer(edict_t * e);
 char *pfnInfoKeyValue(char *infobuffer, char *key);
 void pfnSetKeyValue(char *infobuffer, char *key, char *value);
@@ -179,7 +182,7 @@ void pfnBuildSoundMsg(edict_t * entity, int channel, const char *sample,
                       /*int */ float volume, float attenuation, int fFlags,
                       int pitch, int msg_dest, int msg_type,
                       const float *pOrigin, edict_t * ed);
-int pfnIsDedicatedServer(void);
+int pfnIsDedicatedServer();
 cvar_t *pfnCVarGetPointer(const char *szVarName);
 unsigned int pfnGetPlayerWONId(edict_t * e);
 const char *pfnGetPlayerAuthId(edict_t * e);    // new
@@ -208,7 +211,7 @@ void pfnDeltaAddEncoder(char *name,
                                                    *from,
                                                    const unsigned char
                                                    *to));
-int pfnGetCurrentPlayer(void);
+int pfnGetCurrentPlayer();
 int pfnCanSkipPlayer(const edict_t * player);
 int pfnDeltaFindField(struct delta_s *pFields, const char *fieldname);
 void pfnDeltaSetFieldByIndex(struct delta_s *pFields, int fieldNumber);

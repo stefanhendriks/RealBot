@@ -58,7 +58,7 @@ extern weapon_price_table weapons_table[32];
 
 // Define Join states for other mods
 #define JOIN_TEAM        1
-#define JOIN_CLASS        2
+#define JOIN_CLASS       2
 #define JOIN_NONE        9999
 
 // fix for steam (cs 1.6 bot will crash when FL_FAKECLIENT;
@@ -119,8 +119,8 @@ void FakeClientCommand(edict_t *pBot, char *arg1, char *arg2, char *arg3);
 #define WANDER_LEFT  1
 #define WANDER_RIGHT 2
 
-#define BOT_PITCH_SPEED 20
-#define BOT_YAW_SPEED 20
+#define BOT_PITCH_SPEED 30
+#define BOT_YAW_SPEED 30
 
 #define RESPAWN_NONE             0      // Added by Stefan
 #define RESPAWN_IDLE             1
@@ -187,14 +187,14 @@ public:
     void rememberHostageIsFollowingMe(edict_t *pHostage);
     void rememberWhichHostageToRescue(edict_t *pHostage);
     void clearHostageToRescueTarget();
-    int getAmountOfHostagesBeingRescued();
+    int getAmountOfHostagesBeingRescued() const;
     edict_t * findHostageToRescue();         // finds a hostage to rescue
-    edict_t * getHostageToRescue();          // returns hostage state pointer
+    edict_t * getHostageToRescue() const;          // returns hostage state pointer
     bool isEscortingHostages();            // Does the bot has used any hostages yet?
     void checkOfHostagesStillFollowMe();
 
-    bool hasTimeToMoveToNode();
-    bool isDefusing();
+    bool hasTimeToMoveToNode() const;
+    bool isDefusing() const;
 
     // ------------------------
     // TIMERS
@@ -307,6 +307,7 @@ public:
     // Remember stuck stuff
     int iJumpTries;
     int iDuckTries;
+    int iDuckJumpTries;  // Experimental DuckJump added for this new node [APG]RoboCop[CL]
 
     // ------------------------
     // BOOLEANS
@@ -394,29 +395,29 @@ public:
     void CheckGear();
 
     void ThinkAboutGoals();      // Think about goals
-    bool TakeCover();
+    bool TakeCover() const;
 
-    bool CarryWeapon(int iType);
+    bool CarryWeapon(int iType) const;
 
-    int CarryWeaponType();
+    int CarryWeaponType() const;
 
-    void setHeadAiming(Vector vTarget);    // Aim at vector
+    void setHeadAiming(const Vector& vTarget);    // Aim at vector
     void AimAtEnemy();
 
     void PickBestWeapon();
 
     void FireWeapon();
 
-    int ReturnTurnedAngle(float speed, float current, float ideal);
+    static int ReturnTurnedAngle(float speed, float current, float ideal);
 
     int FindEnemy();
 
     float ReactionTime(int iSkill);      // Reaction time based upon skill
     void FindCover();
 
-    bool canSeeVector(Vector vDest);
+    bool canSeeVector(const Vector& vDest) const;
 
-    bool canSeeEntity(edict_t *pEntity);
+    bool canSeeEntity(edict_t *pEntity) const;
 
     void InteractWithFriends();
 
@@ -427,40 +428,40 @@ public:
     // Set methods
     int determineCurrentNode();
     int determineCurrentNodeWithTwoAttempts();
-    int determineCurrentNode(float range);
+    int determineCurrentNode(float range) const;
 
     // Get methods
     float getDistanceTo(int nodeIndex);
-    float getDistanceTo(Vector vDest);
+    float getDistanceTo(const Vector& vDest) const;
 
     // "is" Methods (booleans, statements, etc)
-    bool isDead();
-    bool isHeadingForGoalNode();
-    bool isEnemyAlive();         // If enemy set, is it alive? (else returns false)
-    bool isOnLadder();             // Bot on ladder or not?
+    bool isDead() const;
+    bool isHeadingForGoalNode() const;
+    bool isEnemyAlive() const;         // If enemy set, is it alive? (else returns false)
+    bool isOnLadder() const;             // Bot on ladder or not?
     bool isSeeingEnemy();          // If enemy set, can we see it? (takes blinded by flashbang into account)
-    bool isCounterTerrorist();
-    bool isTerrorist();
+    bool isCounterTerrorist() const;
+    bool isTerrorist() const;
 
     // "is" methods, related to weapons
-    bool wantsToBuyStuff();
-    bool isUsingConsole();
-    bool isOwningWeapon(int weaponId);
-    bool isHoldingWeapon(int weaponId);
-    bool ownsFavoritePrimaryWeapon();
-    bool ownsFavoriteSecondaryWeapon();
-    bool hasFavoritePrimaryWeaponPreference();
-    bool hasFavoriteSecondaryWeaponPreference();
-    bool hasPrimaryWeaponEquiped();
-    bool hasSecondaryWeaponEquiped();
-    bool hasPrimaryWeapon(int weaponId);
-    bool hasSecondaryWeapon(int weaponId);
-    bool canAfford(int weaponId);
+    bool wantsToBuyStuff() const;
+    bool isUsingConsole() const;
+    bool isOwningWeapon(int weaponId) const;
+    bool isHoldingWeapon(int weaponId) const;
+    bool ownsFavoritePrimaryWeapon() const;
+    bool ownsFavoriteSecondaryWeapon() const;
+    bool hasFavoritePrimaryWeaponPreference() const;
+    bool hasFavoriteSecondaryWeaponPreference() const;
+    bool hasPrimaryWeaponEquiped() const;
+    bool hasSecondaryWeaponEquiped() const;
+    bool hasPrimaryWeapon(int weaponId) const;
+    bool hasSecondaryWeapon(int weaponId) const;
+    bool canAfford(int price) const; //price muddled with weaponId? [APG]RoboCop[CL]
 
     // -------------------
     // 20/06/04 - CS 1.6 shield functions
-    bool hasShield();
-    bool hasShieldDrawn();
+    bool hasShield() const;
+    bool hasShieldDrawn() const;
 
     bool isHoldingGrenadeOrFlashbang() const;
     bool isBlindedByFlashbang() const;
@@ -472,22 +473,20 @@ public:
 
     // -------------------
     void CheckAround();          // Check around body
-
     // -------------------
+	
+    bool hasEnemy() const;
+    bool hasEnemy(const edict_t * pEdict) const;
+    edict_t * getEnemyEdict() const;
 
-    //
-    bool hasEnemy();
-    bool hasEnemy(edict_t * pEdict);
-    edict_t * getEnemyEdict();
-
-    bool hasGoal();
-    bool hasGoalIndex();
-    tGoal *getGoalData();
+    bool hasGoal() const;
+    bool hasGoalIndex() const;
+    tGoal *getGoalData() const;
     bool shouldBeWandering();
-    bool hasBomb();
+    bool hasBomb() const;
 
     // ------------
-    bool isWalkingPath();
+    bool isWalkingPath() const;
 
     void beginWalkingPath();
     void nextPathIndex();       // increases index so we know which node to walk on path
@@ -501,15 +500,13 @@ public:
     void setGoalNode(int nodeIndex, int iGoalIndex);
 
     int getCurrentNode();                      // the current (closest) node we are at
-    int getCurrentPathNodeToHeadFor();         // get Node from path
-    int getPreviousPathNodeToHeadFor();        // get previous Node from path
-    int getNextPathNode();                     // get next Node from path
-    int getPathIndex();
-    int getPreviousPathIndex();
+    int getCurrentPathNodeToHeadFor() const;         // get Node from path
+    int getPreviousPathNodeToHeadFor() const;        // get previous Node from path
+    int getNextPathNode() const;                     // get next Node from path
+    int getPathIndex() const;
+    int getPreviousPathIndex() const;
 
-    int getGoalNode();
-
-
+    int getGoalNode() const;
 
     void setMoveSpeed(float value);
     void setStrafeSpeed(float value, float time);
@@ -531,19 +528,19 @@ public:
     void rprint_trace(const char *msg);
     void Dump();
 
-    bool hasHostageToRescue();
+    bool hasHostageToRescue() const;
 
-    bool canSeeHostageToRescue();
+    bool canSeeHostageToRescue() const;
 
     void checkIfHostagesAreRescued();
 
-    bool isOnSameTeamAs(cBot *pBot);
+    bool isOnSameTeamAs(const cBot *pBot) const;
 
-    bool shouldBeAbleToMove();
+    bool shouldBeAbleToMove() const;
 
-    edict_t *getEntityBetweenMeAndCurrentPathNodeToHeadFor();
+    edict_t *getEntityBetweenMeAndCurrentPathNodeToHeadFor() const;
 
-    float getDistanceToNextNode();
+    float getDistanceToNextNode() const;
 
     void setBodyToNode(int nodeIndex);
 
@@ -552,27 +549,32 @@ public:
     void setTimeToMoveToNode(float timeInSeconds);
     void increaseTimeToMoveToNode(float timeInSeconds);
 
-    float getMoveToNodeTimeRemaining();
+    float getMoveToNodeTimeRemaining() const;
 
     bool shouldActWithC4() const;
 
     int keyPressed(int key) const;
 
-    bool shouldCamp();
-    bool shouldWait();
+    bool shouldCamp() const;
+    bool shouldWait() const;
     void setTimeToWait(float timeInSeconds);
 
-    bool shouldBeAbleToInteractWithButton();
+    bool shouldBeAbleToInteractWithButton() const;
 
-    bool hasButtonToInteractWith();
-    bool hasCurrentNode();
+    bool hasButtonToInteractWith() const;
+    bool hasCurrentNode() const;
 
     bool createPath(int destinationNode, int flags);
     bool createPath(int destinationNode);
 
-    void doJump(Vector &vector);
+    void doJump(const Vector &vector);
     void doJump();
     bool isJumping();
+
+    // Experimental DuckJump added for the NodeMachine [APG]RoboCop[CL]
+    void doDuckJump(const Vector& vector);
+    void doDuckJump(); 
+    bool isDuckJumping();
 
     void doDuck();
     bool isDucking();
@@ -625,11 +627,11 @@ void UTIL_SelectItem(edict_t *pEdict, char *item_name);
 
 void UTIL_BuildFileName(char *filename, char *arg1, char *arg2);
 
-void UTIL_BuildFileNameRB(char *subdir, char *filename);
+void UTIL_BuildFileNameRB(const char *subdir, char *filename);
 
-unsigned short FixedUnsigned16(float value, float scale);
+unsigned short fixed_unsigned16(float value, float scale); //redundant declaration? [APG]RoboCop[CL]
 
-short FixedSigned16(float value, float scale);
+short fixed_signed16(float value, float scale); //redundant declaration? [APG]RoboCop[CL]
 
 void HUD_DrawString(int r, int g, int b, char *msg, edict_t *edict);
 

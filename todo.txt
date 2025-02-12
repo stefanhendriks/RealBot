@@ -1,11 +1,14 @@
 - Bots may not camp when last in team (or second last?)
-- Bots should know when others are near its waypoint, so it won't run into each other
-- Bots should have better knowledge about goals 
-- Improve pathfinder
-- Chat rate should be lower @ default
-- Improve code in overall, ugly!
-
-
-- improve the way bots walk path and decide it is a bad connection
-  - improve 'unstucking'... when not stuck by other players.
-  
+- Bots should know when others are near its waypoint, so it won't run into each other - Done but not fully tested!
+- Bots should have better knowledge about goals (mainly for investigating which bomb site got the live C4 in and hostages)
+- Improve pathfinder by properly removing excessive connections, especially on ones that have blocked pathways - Not fully tested!
+- Allow bots to duck jump for vaulting upon crates or ledges, cs_italy, de_nuke and de_inferno are good examples - Almost done!
+- Improve the way bots walk path and decide it is a bad connection
+- Improve 'unstucking'... when not stuck by hostages and how to attack glass or vent grills in order to proceed.
+- Allow bots to autovacate for human players
+- Prevent bots from Team Killing when a player joins T in CZ
+- To allow bots to really, I mean REALLY ignore nodes from VERY hard to reach places - including non-vaultable edges and tall crates
+- Find an automated solution for removing redundant or excessive nodes that can make the connections less messy (if it doesn't already exist?)
+- To add a cvar to toggle Reallog.txt on or off to reduce printing too many texts in the console and to prevent that txt file building up
+- To allow bots to use melee on breakables or "func_breakable" to infiltrate windows and vents
+- Ensure that the RealBot personality directories are correctly assigned

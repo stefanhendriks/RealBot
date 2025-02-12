@@ -15,7 +15,7 @@
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 //
 // See the GNU General Public License for more details at:
 // http://www.gnu.org/copyleft/gpl.html
@@ -34,13 +34,13 @@ header. This is seperated into three, 4 byte blocks as follows:
 -Header-
 
  - Signature (4 bytes of char, equals 'PACK' in ALL cases. If it doesn't then
-              it is not considered a pack file.)
+			  it is not considered a pack file.)
 
  - Directory Offset (4 bytes, single integer. Specifies the position of the
-                     first of X Directory areas in the file.)
+					 first of X Directory areas in the file.)
 
  - Directory Length (4 bytes, single integer. Specifies the length of the X
-                     dirextory areas.)
+					 dirextory areas.)
 
 (Note: We can find the number X by dividing the length by the 64, because each
  directory section is 64 bytes. If the mod of this division is not zero then
@@ -49,51 +49,51 @@ header. This is seperated into three, 4 byte blocks as follows:
 -Directory section-
 
  - File name (56 bytes of char, specifies the name of the file pointed to by
-              the File Position data. Includes path info. ie maps/base1.bsp)
+			  the File Position data. Includes path info. ie maps/base1.bsp)
 
  - File Position (4  bytes, single integer. The first byte(address) of the
-                  file named by File Name)
+				  file named by File Name)
 
  - File Length (4  bytes, single integer. The length of the file named by
-                File Name)
+				File Name)
 
 Notes: Normally, the header is at the start of the file and the X number of
 directory areas at the very end. The file data is usually in between.
 
-                                     ________________________________
-           HEADER starts here --->  | - Signature         (4 bytes)  |
-                                    | - Directory Offset  (4 bytes)  |
-                                    | - Directory Length  (4 bytes)  |
-                                    |________________________________|
-        FILE DATA starts here --->  |                                |
-                                    |                                |
-                                    |         BINARY DATA            |
-                                    |      (pointed to by the        |
-                                    |       File Position data)      |
-                                    |                                |
-                                  ~~~~~                            ~~~~~
-                                  ~~~~~                            ~~~~~
-                                    |                                |
-                                    |                                |
-                                    |                                |
-                                    |                                |
-                                    |________________________________|
+									 ________________________________
+		   HEADER starts here --->  | - Signature         (4 bytes)  |
+									| - Directory Offset  (4 bytes)  |
+									| - Directory Length  (4 bytes)  |
+									|________________________________|
+		FILE DATA starts here --->  |                                |
+									|                                |
+									|         BINARY DATA            |
+									|      (pointed to by the        |
+									|       File Position data)      |
+									|                                |
+								  ~~~~~                            ~~~~~
+								  ~~~~~                            ~~~~~
+									|                                |
+									|                                |
+									|                                |
+									|                                |
+									|________________________________|
 DIRECTORY SECTION starts here --->  | - File name         (56 bytes) |
-                                    | - File Position     (4  bytes) |
-                                    | - File Length       (4  bytes) |
-                                    |________________________________|
-                                    | - File name         (56 bytes) |
-                                    | - File Position     (4  bytes) |
-                                    | - File Length       (4  bytes) |
-                                    |________________________________|
-                                    |                                |
-                                  ~~~~~                            ~~~~~
-                                  ~~~~~                            ~~~~~
-                                    |________________________________|
-                                    | - File name         (56 bytes) |
-                                    | - File Position     (4  bytes) |
-                                    | - File Length       (4  bytes) |
-                                    |________________________________|
+									| - File Position     (4  bytes) |
+									| - File Length       (4  bytes) |
+									|________________________________|
+									| - File name         (56 bytes) |
+									| - File Position     (4  bytes) |
+									| - File Length       (4  bytes) |
+									|________________________________|
+									|                                |
+								  ~~~~~                            ~~~~~
+								  ~~~~~                            ~~~~~
+									|________________________________|
+									| - File name         (56 bytes) |
+									| - File Position     (4  bytes) |
+									| - File Length       (4  bytes) |
+									|________________________________|
 */
 
 //
@@ -102,34 +102,33 @@ DIRECTORY SECTION starts here --->  | - File name         (56 bytes) |
 
 typedef struct
 {
-   char  identification[4];      // should be PACK or KCAP
-   int   dir_offset;             // directory offset
-   int   dir_length;             // directory length
+	char  identification[4];      // should be PACK or KCAP
+	int   dir_offset;             // directory offset
+	int   dir_length;             // directory length
 } pakheader_t;
 
 typedef struct
 {
-   char filename[56];            // PAK entry filename
-   int file_pos;                 // PAK entry file position
-   int file_length;              // PAK entry length
+	char filename[56];            // PAK entry filename
+	int file_pos;                 // PAK entry file position
+	int file_length;              // PAK entry length
 } pakinfo_t;
 
 typedef struct pakconfig_s
 {
-   FILE        *pakhandle;
-   pakheader_t  pakheader;
-   pakinfo_t   *pakinfo;
-   int          num_entries;
-   struct pakconfig_s *next_config;
+	FILE* pakhandle;
+	pakheader_t  pakheader;
+	pakinfo_t* pakinfo;
+	int          num_entries;
+	struct pakconfig_s* next_config;
 } pakconfig_t;
 
-FILE *P_OpenPak (char *filename);
-int P_ReadPakHeader(FILE *pakhandle, pakheader_t *pakheader);
-void P_ReadPakInfo(FILE *pakhandle, long offset, int num_entries, pakinfo_t *pakinfo);
-void P_ReadPakItem(FILE *pakhandle, pakinfo_t *pakinfo, void *buffer);
+FILE* P_OpenPak(char* filename);
+int P_ReadPakHeader(FILE* pakhandle, pakheader_t* pakheader);
+void P_ReadPakInfo(FILE* pakhandle, long offset, int num_entries, pakinfo_t* pakinfo);
+void P_ReadPakItem(FILE* pakhandle, pakinfo_t* pakinfo, void* buffer);
 void Cmd_PakFile(void);
-bool SearchPakFilename(char *filename, pakconfig_t **pakconfig, pakinfo_t **pakinfo);
-bool LoadPakBSPFile(char *filename);
+bool SearchPakFilename(char* filename, pakconfig_t** pakconfig, pakinfo_t** pakinfo);
+bool LoadPakBSPFile(char* filename);
 
 #endif
-

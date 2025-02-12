@@ -57,8 +57,8 @@
 #define BROADCAST_DEATHS_MIN    7       // died, show min info (name)
 #define BROADCAST_DEATHS_NONE   8       // died, show no information
 
-static const int MAX_BOTS = 32;
-static const int MAX_NAME_LENGTH = 32;
+static constexpr int MAX_BOTS = 32;
+static constexpr int MAX_NAME_LENGTH = 32;
 
 // Debug messages for realbot
 void REALBOT_PRINT(cBot * pBot, const char *Function, const char *msg);
@@ -71,36 +71,36 @@ public:
 
    // ---------------------
    void LoadNames();
-   void LoadCFG();
-   void LoadBuyTable();
+   static void LoadCFG();
+   static void LoadBuyTable();
 
    // ---------------------
-   void SelectName(char *name);
-   bool NamesAvailable();
+   void SelectName(char *name) const;
+   bool NamesAvailable() const;
    void SetPlayingRounds(int iMin, int iMax);
    void SetNewRound(bool bState);
    void resetRoundTime();
    void SetRoundTime(float fTime);
-   void DetermineMapGoal();
+   static void DetermineMapGoal();
 
    // ---------------------
    char *RandomSentence();
 
    // ---------------------
-   int GetMinPlayRounds();
-   int GetMaxPlayRounds();
+   int GetMinPlayRounds() const;
+   int GetMaxPlayRounds() const;
 
-   bool NewRound();             // New round?
-   float getRoundStartedTime();           // When did the round start? (time)
-   float getRoundTimeElapsed();           // difference between now and round started time
+   bool NewRound() const;             // New round?
+   float getRoundStartedTime() const;           // When did the round start? (time)
+   float getRoundTimeElapsed() const;           // difference between now and round started time
 
    int createBot(edict_t * pPlayer, const char *teamArg, const char *skillArg,
-                 const char *modelArg, const char *nameArg);
+                 const char *modelArg, const char *nameArg) const;
 
    // ---------------------
    void UpdateGameStatus();     // Updates global game variables
-   bool isC4Dropped();
-   bool isPlantedC4Discovered();
+   bool isC4Dropped() const;
+   bool isPlantedC4Discovered() const;
 
    // ---------------------
    // public variables
@@ -139,13 +139,13 @@ public:
 private:
    // ---------------------
    // private variables
-   char cSpeechSentences[16][80];
-   int iAmountNames;
-   char cBotNames[MAX_BOT_NAMES][BOT_NAME_LEN + 1];
-   int iMinPlayRounds, iMaxPlayRounds;  // Min/Max playable rounds
-   bool bNewRound;              // New round triggered?
-   float fRoundTime;            // Round time
-   float fUpdateGoalTimer;
+   char cSpeechSentences[16][80] = {};
+   int iAmountNames = 0;
+   char cBotNames[MAX_BOT_NAMES][BOT_NAME_LEN + 1] = {};
+   int iMinPlayRounds = 0, iMaxPlayRounds = 0;  // Min/Max playable rounds
+   bool bNewRound = false;              // New round triggered?
+   float fRoundTime = 0.0f;            // Round time
+   float fUpdateGoalTimer = 0.0f;
 };
 
 #endif // GAME_H

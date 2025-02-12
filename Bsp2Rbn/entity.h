@@ -15,7 +15,7 @@
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 //
 // See the GNU General Public License for more details at:
 // http://www.gnu.org/copyleft/gpl.html
@@ -33,17 +33,17 @@
 
 typedef struct Botman_entvars_s
 {
-   char     classname[64];
-   vec3_t   origin;
-   vec3_t   angles;
+	char     classname[64];
+	vec3_t   origin;
+	vec3_t   angles;
 
-   int      rendermode;
-   float    renderamt;
-   vec3_t   rendercolor;
-   int      renderfx;
+	int      rendermode;
+	float    renderamt;
+	vec3_t   rendercolor;
+	int      renderfx;
 
-   int      brush_model_index;
-   StudioModel *studio_model;
+	int      brush_model_index;
+	StudioModel* studio_model;
 } Botman_entvars_t;
 
 extern int Botman_num_entvars;
@@ -58,4 +58,3 @@ void LoadEntVars(void);
 void InitSpawnPoint(void);
 
 #endif
-
